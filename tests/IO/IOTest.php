@@ -3,6 +3,7 @@
 namespace Tests\Phunkie\Effect\IO;
 
 use Phunkie\Effect\IO\IO;
+use Phunkie\Types\Kind;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -29,5 +30,17 @@ class IOTest extends TestCase
 
         $this->assertEquals(1, $io->unsafeRun());
         $this->assertEquals(2, $io->unsafeRun());
+    }
+
+    #[Test]
+    public function it_is_a_phunkie_kind()
+    {
+        $io = new IO(function() {
+            return 42;
+        });
+
+        $this->assertInstanceOf(Kind::class, $io);
+        $this->assertEquals(1, $io->getTypeArity());
+        $this->assertEquals(['A'], $io->getTypeVariables());
     }
 }

@@ -2,8 +2,17 @@
 
 namespace Phunkie\Effect\IO;
 
-class IO
+use Phunkie\Effect\Ops\FunctorOps;
+use Phunkie\Cats\Functor;
+use Phunkie\Types\Kind;
+
+/**
+ * @template A
+ */
+class IO implements Functor, Kind
 {
+    use FunctorOps;
+
     private $unsafeRun;
 
     public function __construct(callable $unsafeRun)
@@ -13,6 +22,31 @@ class IO
 
     public function unsafeRun()
     {
-        return ($this->unsafeRun)();
+        try {
+            return ($this->unsafeRun)();
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
+    public function handleError(callable $handler): IO
+    {
+        return new IO(function() use ($handler) {
+            try {
+                return ($this->unsafeRun)();
+            } catch (\Throwable $e) {
+                return $handler($e);
+            }
+        });
+    }
+
+    public function getTypeArity(): int
+    {
+        return 1;
+    }
+
+    public function getTypeVariables(): array
+    {
+        return ['A'];
     }
 }
