@@ -15,15 +15,18 @@ composer require phunkie/effect
 The most basic way to create an IO is using the `io` function:
 
 ```php
+use const Phunkie\Effect\Functions\io\IO;
 use function Phunkie\Effect\Functions\io\io;
+use function Phunkie\Functions\applicative\pure;
 
 // Create an IO from a pure value
 $pure = io(42);
 
 // Create an IO from a side effect
-$effect = io(function() {
-    return file_get_contents('data.txt');
-});
+$effect = io(fn() => file_get_contents('data.txt'));
+
+// Create an IO from a callable
+$callableIO = pure(IO)(fn($x) => $x + 2)
 ```
 
 ### Running an IO
@@ -39,9 +42,7 @@ $result = $effect->unsafeRun();
 You can transform the value inside an IO using `map`:
 
 ```php
-$uppercase = $effect->map(function($content) {
-    return strtoupper($content);
-});
+$uppercase = $effect->map(fn($content) => strtoupper($content));
 
 // The content will be uppercase when run
 $result = $uppercase->unsafeRun();
