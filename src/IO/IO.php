@@ -4,17 +4,20 @@ namespace Phunkie\Effect\IO;
 
 use Phunkie\Effect\Ops\FunctorOps;
 use Phunkie\Effect\Ops\ApplicativeOps;
+use Phunkie\Effect\Ops\MonadOps;
 use Phunkie\Cats\Functor;
 use Phunkie\Cats\Applicative;
+use Phunkie\Cats\Monad;
 use Phunkie\Types\Kind;
 
 /**
  * @template A
  */
-class IO implements Functor, Applicative, Kind
+class IO implements Functor, Applicative, Monad, Kind
 {
     use FunctorOps;
     use ApplicativeOps;
+    use MonadOps;
 
     private $unsafeRun;
 
