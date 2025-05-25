@@ -1,0 +1,34 @@
+{
+    "name": "phunkie/effect",
+    "autoload": {
+        "psr-4": {
+            "Phunkie\\Effect\\": "src/"
+        },
+        "files": [
+            "src/Functions/common.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Phunkie\\Effect\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Marcello Duarte",
+            "email": "marcello.duarte@gmail.com"
+        }
+    ],
+    "require": {
+        "phunkie/phunkie": "^0.11.7"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "phunkie/phunkie-console": "dev-master"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "bin-dir": "bin"
+    }
+}
