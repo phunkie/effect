@@ -3,15 +3,18 @@
 namespace Phunkie\Effect\IO;
 
 use Phunkie\Effect\Ops\FunctorOps;
+use Phunkie\Effect\Ops\ApplicativeOps;
 use Phunkie\Cats\Functor;
+use Phunkie\Cats\Applicative;
 use Phunkie\Types\Kind;
 
 /**
  * @template A
  */
-class IO implements Functor, Kind
+class IO implements Functor, Applicative, Kind
 {
     use FunctorOps;
+    use ApplicativeOps;
 
     private $unsafeRun;
 

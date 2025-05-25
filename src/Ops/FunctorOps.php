@@ -6,6 +6,7 @@ use Phunkie\Types\Unit;
 use Phunkie\Types\Pair;
 use Phunkie\Types\Kind;
 use Phunkie\Effect\IO\IO;
+use Phunkie\Cats\Functor;
 
 trait FunctorOps
 {
@@ -13,7 +14,7 @@ trait FunctorOps
      * @template T
      * @template U
      * @param callable(T): U $f
-     * @return Kind<U> | IO<U>
+     * @return Kind<U>|Functor<U>|IO<U>
      */
     public function map(callable $f): Kind | IO
     {
@@ -25,7 +26,7 @@ trait FunctorOps
     /**
      * @template B
      * @param callable(mixed): B $f
-     * @return callable(Kind): Kind<B> | callable(IO): IO<B>
+     * @return callable(Kind): Kind<B>|Functor<B>|callable(IO): IO<B>
      */
     public function lift($f): callable
     {
@@ -37,7 +38,7 @@ trait FunctorOps
     /**
      * @template B
      * @param B $b
-     * @return Kind<B> | IO<B>
+     * @return Kind<B>|Functor<B>|IO<B>
      */
     public function as($b): Kind | IO
     {
@@ -47,9 +48,9 @@ trait FunctorOps
     }
 
     /**
-     * @return Kind<Unit>|IO<Unit>
+     * @return Kind<Unit>|Functor<Unit>|IO<Unit>
      */
-    public function void(): Kind | IO
+    public function void(): Kind| IO
     {
         return $this->as(Unit());
     }
@@ -57,7 +58,7 @@ trait FunctorOps
     /**
      * @template B
      * @param callable(mixed): B $f
-     * @return Kind<Pair>|IO<Pair>
+     * @return Kind<Pair>|Functor<Pair>|IO<Pair>
      */
     public function zipWith($f): Kind | IO
     {
@@ -70,7 +71,7 @@ trait FunctorOps
      * @template B
      * @param callable(mixed): B $f
      * @param callable(B): mixed $g
-     * @return Kind<B>|IO<B>
+     * @return Kind<B>|Functor<B>|IO<B>
      */
     public function imap(callable $f, callable $g): Kind | IO
     {
