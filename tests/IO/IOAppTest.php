@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\IO;
+namespace Tests\Phunkie\Effect\IO;
 
 use Phunkie\Effect\IO\IO;
 use Phunkie\Effect\IO\IOApp;

@@ -20,12 +20,12 @@ A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Ef
    - Exit Codes and Error Handling
 
 4. [Blocker](blocker.md)
-   - Understanding Blocking Operations
-   - Managing Blocking Contexts
+   - What is a blocker
+   - Working with blockers
    - Best Practices
 
 5. [Combinators](combinators.md)
-   - Map and FlatMap
+   - Map and Filter
    - Sequence and Traverse
    - Race and Timeout
    - Error Handling

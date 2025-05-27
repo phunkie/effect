@@ -2,6 +2,7 @@
 
 namespace Phunkie\Effect\IO;
 
+use Phunkie\Effect\Concurrent\AsyncHandle;
 use Phunkie\Effect\Ops\FunctorOps;
 use Phunkie\Effect\Ops\ApplicativeOps;
 use Phunkie\Effect\Ops\MonadOps;
@@ -30,6 +31,21 @@ class IO implements Functor, Applicative, Monad, Kind
     {
         try {
             return ($this->unsafeRun)();
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
+    public function unsafeRunSync()
+    {
+        try {
+            $handle = ($this->unsafeRun)();
+            
+            if ($handle instanceof AsyncHandle) {
+                return $handle->await();
+            }
+            return $handle;
+
         } catch (\Throwable $e) {
             throw $e;
         }
