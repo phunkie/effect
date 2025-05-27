@@ -10,8 +10,7 @@ A Blocker is a mechanism to handle potentially blocking operations in a controll
 - Long-running computations
 
 ```php
-use function Phunkie\Effect\Functions\io\io;
-use function Phunkie\Effect\Functions\blocker\blocking;
+use function Phunkie\Effect\Functions\blocking\blocking;
 
 // Reading a file with a blocker
 $readFile = blocking(function() {
@@ -42,6 +41,46 @@ The simplest way to use blocking operations is to let Phunkie handle the executi
 $result = blocking(function() {
     return expensiveOperation();
 });
+```
+
+The `blocking` function returns an `IO` value, which means you can control when and how the operation executes:
+
+```php
+// Get an IO value
+$io = blocking(function() {
+    return expensiveOperation();
+});
+
+// Execute in the current context (synchronous)
+$result = $io->unsafeRunSync();
+
+// Get a handle for asynchronous execution
+$handle = $io->unsafeRun();  // Returns an AsyncHandle
+// The operation hasn't started yet - it's lazy
+
+// When you're ready to execute
+$result = $handle->await();  // This triggers the execution context
+```
+
+This gives you flexibility in how you handle blocking operations:
+- Use `unsafeRunSync` when you want to execute in the current context and get the result immediately
+- Use `unsafeRun` when you want to defer execution until you're ready to handle it
+- Chain operations before executing them
+
+For example, you can prepare multiple operations and execute them when needed:
+```php
+$io1 = blocking(function() { return operation1(); });
+$io2 = blocking(function() { return operation2(); });
+
+$handle1 = $io1->unsafeRun();
+$handle2 = $io2->unsafeRun();
+
+// Operations haven't started yet - they're lazy
+// Do other work...
+
+// When you're ready to execute
+$result1 = $handle1->await();  // Triggers execution of operation1
+$result2 = $handle2->await();  // Triggers execution of operation2
 ```
 
 ### Custom Execution Contexts
