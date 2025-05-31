@@ -4,10 +4,10 @@ namespace Tests\Phunkie\Effect\Concurrent;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-use Phunkie\Effect\Concurrent\Blocking;
+use Phunkie\Effect\Concurrent\Blocker;
 use Phunkie\Effect\Concurrent\ExecutionContext;
 
-class BlockingTest extends TestCase
+class BlockerTest extends TestCase
 {
     #[Test]
     public function it_delegates_to_execution_context()
@@ -21,7 +21,7 @@ class BlockingTest extends TestCase
             ->with($thunk)
             ->willReturn(42);
 
-        $blocking = new Blocking($thunk, $context);
+        $blocking = new Blocker($thunk, $context);
         $result = $blocking->runSync();
 
         $this->assertEquals(42, $result);

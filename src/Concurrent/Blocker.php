@@ -2,7 +2,7 @@
 
 namespace Phunkie\Effect\Concurrent;
 
-class Blocking
+class Blocker
 {
     public function __construct(
         private readonly \Closure $thunk,
