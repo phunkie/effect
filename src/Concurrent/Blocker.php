@@ -22,6 +22,4 @@ class Blocker
     {
         return $this->context?->execute($this->thunk);        
     }
-
-
 } 

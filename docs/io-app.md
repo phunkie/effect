@@ -16,6 +16,50 @@ use const Phunkie\Effect\IOApp\ExitInvalid;     // 128
 use const Phunkie\Effect\IOApp\ExitInterrupted; // 130
 ```
 
+## Console Functions
+
+Phunkie Effects provides a set of console functions that return IO values for safe console interaction:
+
+```php
+use function Phunkie\Effect\Functions\console\printLn;
+use function Phunkie\Effect\Functions\console\readLine;
+use function Phunkie\Effect\Functions\console\printError;
+use function Phunkie\Effect\Functions\console\printWarning;
+use function Phunkie\Effect\Functions\console\printSuccess;
+use function Phunkie\Effect\Functions\console\printInfo;
+use function Phunkie\Effect\Functions\console\printDebug;
+use function Phunkie\Effect\Functions\console\printTable;
+use function Phunkie\Effect\Functions\console\printProgress;
+use function Phunkie\Effect\Functions\console\printSpinner;
+
+// Basic output
+printLn("Hello, World!")->unsafeRun();
+
+// Reading input
+$name = readLine("Enter your name: ")->unsafeRun();
+
+// Colored output
+printError("Something went wrong")->unsafeRun();
+printWarning("Be careful")->unsafeRun();
+printSuccess("Operation completed")->unsafeRun();
+printInfo("Just FYI")->unsafeRun();
+printDebug("Variable value: 42")->unsafeRun();
+
+// Tables
+$data = [
+    ['Name', 'Age', 'City'],
+    ['John', '30', 'New York'],
+    ['Jane', '25', 'London']
+];
+printTable($data)->unsafeRun();
+
+// Progress indicators
+printProgress(50, 100)->unsafeRun();
+printSpinner("Processing...")->unsafeRun();
+```
+
+All console functions return IO values, ensuring that side effects are properly managed and composed.
+
 ## Creating an IO App
 
 To create an IO application, extend the `IOApp` class and implement the `run` method:
@@ -23,6 +67,7 @@ To create an IO application, extend the `IOApp` class and implement the `run` me
 ```php
 use Phunkie\Effect\IO\IOApp;
 use function Phunkie\Effect\Functions\io\io;
+use function Phunkie\Effect\Functions\console\printLn;
 use const Phunkie\Effect\IOApp\ExitSuccess;
 
 class MyApp extends IOApp
@@ -32,10 +77,8 @@ class MyApp extends IOApp
      */
     public function run(): IO
     {
-        return io(function() {
-            echo "Hello, Effects!";
-            return ExitSuccess;
-        });
+        return printLn("Hello, Effects!")
+            ->map(fn() => ExitSuccess);
     }
 }
 ```
@@ -64,6 +107,7 @@ IOApp provides a way to handle errors and return appropriate exit codes:
 ```php
 use Phunkie\Effect\IO\IOApp;
 use function Phunkie\Effect\Functions\io\io;
+use function Phunkie\Effect\Functions\console\printError;
 use const Phunkie\Effect\IOApp\ExitSuccess;
 use const Phunkie\Effect\IOApp\ExitFailure;
 
@@ -79,8 +123,8 @@ class MyApp extends IOApp
                 // Your application logic here
                 return ExitSuccess;
             } catch (\Exception $e) {
-                echo "Error: " . $e->getMessage() . "\n";
-                return ExitFailure;
+                return printError($e->getMessage())
+                    ->map(fn() => ExitFailure);
             }
         });
     }
@@ -102,6 +146,9 @@ Example of a well-structured IOApp:
 ```php
 use Phunkie\Effect\IO\IOApp;
 use function Phunkie\Effect\Functions\io\io;
+use function Phunkie\Effect\Functions\console\printLn;
+use function Phunkie\Effect\Functions\console\printError;
+use function Phunkie\Effect\Functions\console\printSuccess;
 use const Phunkie\Effect\IOApp\ExitSuccess;
 use const Phunkie\Effect\IOApp\ExitFailure;
 
@@ -118,18 +165,21 @@ class MyApp extends IOApp
                 $db = $this->connectToDatabase($config);
                 
                 return $this->runApplication($db)
-                    ->map(function($result) {
-                        $this->cleanup($db);
-                        return ExitSuccess;
+                    ->flatMap(function($result) use ($db) {
+                        return printSuccess("Operation completed")
+                            ->map(function() use ($db) {
+                                $this->cleanup($db);
+                                return ExitSuccess;
+                            });
                     })
                     ->handleError(function($error) {
-                        echo "Error: " . $error->getMessage() . "\n";
-                        return ExitFailure;
+                        return printError($error->getMessage())
+                            ->map(fn() => ExitFailure);
                     })
                     ->unsafeRun();
             } catch (\Exception $e) {
-                echo "Fatal error: " . $e->getMessage() . "\n";
-                return ExitFailure;
+                return printError("Fatal error: " . $e->getMessage())
+                    ->map(fn() => ExitFailure);
             }
         });
     }
@@ -166,7 +216,7 @@ class MyApp extends IOApp
 ```
 
 This example shows:
-- Proper error handling
+- Proper error handling with console functions
 - Resource management
 - Composition of IOs
 - Clean separation of concerns

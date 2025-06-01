@@ -15,9 +15,10 @@ A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Ef
    - Your First Effect
 
 3. [IO App and IO Console](io-app.md)
+   - Console Functions
    - Creating an IO App
-   - Running with IO Console
    - Exit Codes and Error Handling
+   - Best Practices
 
 4. [Blocker](blocker.md)
    - What is a blocker

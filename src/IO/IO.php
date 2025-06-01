@@ -2,10 +2,12 @@
 
 namespace Phunkie\Effect\IO;
 
+use Phunkie\Effect\Cats\Parallel;
 use Phunkie\Effect\Concurrent\AsyncHandle;
 use Phunkie\Effect\Ops\FunctorOps;
 use Phunkie\Effect\Ops\ApplicativeOps;
 use Phunkie\Effect\Ops\MonadOps;
+use Phunkie\Effect\Ops\ParallelOps;
 use Phunkie\Cats\Functor;
 use Phunkie\Cats\Applicative;
 use Phunkie\Cats\Monad;
@@ -14,11 +16,12 @@ use Phunkie\Types\Kind;
 /**
  * @template A
  */
-class IO implements Functor, Applicative, Monad, Kind
+class IO implements Functor, Applicative, Monad, Parallel, Kind
 {
     use FunctorOps;
     use ApplicativeOps;
     use MonadOps;
+    use ParallelOps;
 
     private $unsafeRun;
 

@@ -83,52 +83,49 @@ $result1 = $handle1->await();  // Triggers execution of operation1
 $result2 = $handle2->await();  // Triggers execution of operation2
 ```
 
-### Custom Execution Contexts
+### Built-in Execution Contexts
 
-For specific use cases, you can specify a different execution context:
-
-```php
-// Using a thread pool for CPU-intensive tasks
-$result = blocking(function() {
-    return cpuIntensiveOperation();
-}, new ThreadPoolExecutionContext(8));
-
-// Using async execution for I/O-bound tasks
-$result = blocking(function() {
-    return makeHttpRequest();
-}, new AsyncExecutionContext());
-```
-
-### Configuring the Default Context
-
-You can change the default execution context for all blocking operations in your application:
+Phunkie provides several execution contexts that you can use as the second argument to the `blocking` function:
 
 ```php
-// Set async execution as the default
-Runtime::setDefaultContext(new AsyncExecutionContext());
+// Using threads for CPU-intensive tasks
+$result = blocking(
+    function() {
+        return cpuIntensiveOperation();
+    },
+    new ThreadExecutionContext(8)
+);
 
-// All subsequent blocking calls will use async execution
-$result = blocking(function() {
-    return expensiveOperation();
-});
+// Using processes for isolated operations
+$result = blocking(
+    function() {
+        return isolatedOperation();
+    },
+    new ProcessExecutionContext()
+);
 ```
 
-### When to Use Different Contexts
+### Available Execution Contexts
 
 1. **Default Fiber Context**
    - Good for most blocking operations
    - Lightweight and built into PHP
    - Suitable for I/O operations and moderate computations
 
-2. **Thread Pool Context**
+2. **Thread Context**
    - Best for CPU-intensive tasks
    - When you need parallel processing
    - For operations that can benefit from multiple cores
+   - Requires the `ext-parallel` extension
+   - Note: PHP must be compiled with ZTS (Zend Thread Safety) support
 
-3. **Async Context**
-   - Ideal for I/O-bound operations
-   - When handling many concurrent connections
-   - For operations that spend most time waiting
+3. **Process Context**
+   - Ideal for operations requiring isolation
+   - When you need to handle memory-intensive tasks
+   - For operations that should run independently
+   - Requires the `ext-pcntl` extension
+   - Provides better isolation than threads
+   - Useful for long-running operations
 
 For detailed examples and advanced usage patterns, see the [Cookbook](cookbook.md) section.
 
@@ -243,6 +240,70 @@ $withRetry = blocking(function() {
     return unreliableOperation();
 })->retry(3, 1000); // 3 retries with 1 second delay
 ```
+
+### Creating a Blocker
+
+You can create a blocker using the `blocking` function:
+
+```php
+use function Phunkie\Effect\Functions\blocking\blocking;
+
+$blocker = blocking(function() {
+    // This operation might block
+    return file_get_contents('large_file.txt');
+});
+```
+
+### Running a Blocker
+
+You can run a blocker using the `runSync` method:
+
+```php
+$result = $blocker->runSync();
+```
+
+Or you can run it asynchronously using the `__invoke` method:
+
+```php
+$handle = $blocker();
+$result = $handle->await();
+```
+
+### Parallel Execution
+
+Blockers can be composed to run in parallel using the `parMap2` operation:
+
+```php
+use function Phunkie\Effect\Functions\io\io;
+use function Phunkie\Effect\Functions\blocking\blocking;
+
+$operation1 = io(function() {
+    return blocking(function() {
+        // First blocking operation
+        sleep(1);
+        return 1;
+    });
+});
+
+$operation2 = io(function() {
+    return blocking(function() {
+        // Second blocking operation
+        sleep(1);
+        return 2;
+    });
+});
+
+$result = $operation1->parMap2($operation2, fn($a, $b) => $a + $b)->unsafeRun();
+// Total execution time will be ~1 second, not 2 seconds
+```
+
+The `parMap2` operation:
+1. Takes two `IO<Blocker>` values
+2. Executes both blockers in parallel using their existing execution contexts
+3. Combines the results using the provided function
+4. Returns a new `IO` with the combined result
+
+This is particularly useful when you have multiple blocking operations that can be executed independently, as it allows them to run concurrently rather than sequentially.
 
 ## Best Practices
 
