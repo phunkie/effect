@@ -22,4 +22,9 @@ class Blocker
     {
         return $this->context?->execute($this->thunk);        
     }
+
+    public function blockingContext(): ExecutionContext
+    {
+        return $this->context ?? new FiberExecutionContext();
+    }
 } 
