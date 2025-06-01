@@ -20,64 +20,29 @@ A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Ef
    - Exit Codes and Error Handling
    - Best Practices
 
-4. [Blocker](blocker.md)
-   - What is a blocker
-   - Working with blockers
-   - Best Practices
-
-5. [Combinators](combinators.md)
-   - Map and Filter
-   - Sequence and Traverse
-   - Race and Timeout
-   - Error Handling
-
-6. [Concurrency](concurrency.md)
+4. [Concurrency](concurrency.md)
+   - Blockers
+   - Execution Context
    - Parallel Execution
-     - Sequence
-     - Traverse
-     - ParMap
-   - Concurrent Operations
-     - Race
-     - Both
-     - Either
-   - Resource Management
-     - Bracket
-     - Resource
+   - Sequence and Traverse
+   - Race, Both, Either
    - Cancellation
-     - Cancelable
-     - Uncancelable
+   - Delay
+   - Channels
 
-7. [Bracket](bracket.md)
-   - Understanding Bracket
-   - Acquire-Use-Release Pattern
-   - Error Handling in Bracket
-   - Nested Brackets
-   - Best Practices
-
-8. [Resources](resources.md)
+5. [Resources](resources.md)
+   - Brackets
+   - Resource Combinators
    - Files
-     - Reading and Writing
-     - Streams and Buffers
-   - URLs
-     - HTTP Clients
-     - WebSockets
-   - Database Connections
-     - Connection Pools
-     - Transactions
-     - Query Execution
+   - URL
+   - Database
 
-9. [Fibers](fibers.md)
-   - Creating Fibers
-   - Fiber Scheduling
-   - Fiber Communication
-   - Error Propagation
-
-10. [Sockets](sockets.md)
+6. [Sockets](sockets.md)
     - Socket Types
     - Socket Options
     - Socket Lifecycle
 
-11. [Networks](networks.md)
+7. [Networks](networks.md)
     - TCP
       - Server
       - Client
@@ -87,7 +52,7 @@ A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Ef
       - Broadcasting
       - Multicasting
 
-12. [Cookbook](cookbook.md)
+8. [Cookbook](cookbook.md)
     - Supervisor Patterns
       - One-for-One Strategy
       - All-for-One Strategy
