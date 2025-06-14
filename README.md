@@ -1,6 +1,6 @@
-# Phunkie Effects
+# Phunkie Effect
 
-A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Effects provides a way to manage side effects in a purely functional way, making your code more predictable, testable, and maintainable.
+A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Effect provides a way to manage side effects in a purely functional way, making your code more predictable, testable, and maintainable.
 
 ## Installation
 
