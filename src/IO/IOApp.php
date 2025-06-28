@@ -14,5 +14,5 @@ abstract class IOApp
     /**
      * @return IO<int>
      */
-    abstract public function run(): IO;
+    abstract public function run(?array $args = []): IO;
 }
