@@ -12,7 +12,7 @@ use const Phunkie\Effect\IOApp\ExitFailure;
 
 class TestApp extends IOApp
 {
-    public function run(): IO
+    public function run(?array $args = []): IO
     {
         return io(function() {
             return ExitSuccess;
@@ -22,7 +22,7 @@ class TestApp extends IOApp
 
 class FailingApp extends IOApp
 {
-    public function run(): IO
+    public function run(?array $args = []): IO
     {
         return io(function() {
             throw new \Exception("Test error");
