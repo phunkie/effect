@@ -4,6 +4,7 @@ namespace Tests\Phunkie\Effect\IO;
 
 use Phunkie\Effect\IO\IO;
 use Phunkie\Types\Kind;
+use Phunkie\Validation\Failure;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -42,5 +43,19 @@ class IOTest extends TestCase
         $this->assertInstanceOf(Kind::class, $io);
         $this->assertEquals(1, $io->getTypeArity());
         $this->assertEquals(['A'], $io->getTypeVariables());
+    }
+
+    #[Test]
+    public function it_handles_errors_with_attempt()
+    {
+        $io = new IO(function() {
+            throw new \RuntimeException('test error');
+        });
+
+        $result = $io->attempt()->unsafeRun();
+
+        $this->assertTrue($result->isLeft());
+        
+        $this->assertEquals('test error', $result->fold(fn($e) => $e->getMessage())(fn($x) => $x));
     }
 }

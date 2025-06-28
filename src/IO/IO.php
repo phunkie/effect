@@ -12,6 +12,9 @@ use Phunkie\Cats\Functor;
 use Phunkie\Cats\Applicative;
 use Phunkie\Cats\Monad;
 use Phunkie\Types\Kind;
+use Phunkie\Validation\Validation;
+use Phunkie\Validation\Success;
+use Phunkie\Validation\Failure;
 
 /**
  * @template A
@@ -63,6 +66,14 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
                 return $handler($e);
             }
         });
+    }
+
+    /**
+     * @return IO<Validation<\Throwable, A>>
+     */
+    public function attempt(): IO
+    {
+        return new IO(fn() => Attempt($this->unsafeRun));
     }
 
     public function getTypeArity(): int

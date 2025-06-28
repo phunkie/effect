@@ -37,12 +37,7 @@ A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Ef
    - URL
    - Database
 
-6. [Sockets](sockets.md)
-    - Socket Types
-    - Socket Options
-    - Socket Lifecycle
-
-7. [Networks](networks.md)
+6. [Networks](networks.md)
     - TCP
       - Server
       - Client
@@ -52,7 +47,7 @@ A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Ef
       - Broadcasting
       - Multicasting
 
-8. [Cookbook](cookbook.md)
+7. [Cookbook](cookbook.md)
     - Supervisor Patterns
       - One-for-One Strategy
       - All-for-One Strategy

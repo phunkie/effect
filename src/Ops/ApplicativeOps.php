@@ -15,7 +15,7 @@ trait ApplicativeOps
      */
     public function pure($a): Applicative
     {
-        return new static(function() use ($a) {
+        return new IO(function() use ($a) {
             return $a;
         });
     }
