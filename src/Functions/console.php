@@ -3,6 +3,7 @@
 namespace Phunkie\Effect\Functions\console;
 
 use Phunkie\Effect\IO\IO;
+use Phunkie\Types\ImmList;
 
 /**
  * Prints a line to the console
@@ -10,6 +11,16 @@ use Phunkie\Effect\IO\IO;
 function printLn(string $message): IO
 {
     return new IO(fn() => print($message . PHP_EOL));
+}
+
+/**
+ * Prints many lines to the console
+ */
+function printLines(ImmList $lines): IO
+{
+    return new IO(fn() =>
+        $lines->withEach(fn($message) => print($message . PHP_EOL))
+    );
 }
 
 /**

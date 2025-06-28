@@ -5,6 +5,7 @@ namespace Tests\Phunkie\Effect\Functions;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Phunkie\Effect\IO\IO;
+use function Phunkie\Effect\Functions\console\printLines;
 use function Phunkie\Effect\Functions\console\printLn;
 use function Phunkie\Effect\Functions\console\readLine;
 use function Phunkie\Effect\Functions\console\printError;
@@ -37,6 +38,13 @@ class ConsoleTest extends TestCase
     {
         $this->expectOutputString("Hello, World!\n");
         printLn("Hello, World!")->unsafeRun();
+    }
+
+    #[Test]
+    public function it_prints_many_lines()
+    {
+        $this->expectOutputString("Line 1\nLine 2\nLine 3\n");
+        printLines(ImmList('Line 1', 'Line 2', 'Line 3'))->unsafeRun();
     }
 
     #[Test]
