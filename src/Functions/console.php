@@ -100,7 +100,7 @@ function printProgress(int $current, int $total): IO
         $completed = floor(($progress / 100) * $width);
         $remaining = $width - $completed;
 
-        $bar = str_repeat("=", $completed) . ">" . str_repeat(" ", $remaining);
+        $bar = str_repeat("=", (int) $completed) . ">" . str_repeat(" ", (int) $remaining);
         print("\rProgress: [{$bar}] " . round($progress) . "%");
     });
 }

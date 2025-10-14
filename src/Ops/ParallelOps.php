@@ -56,6 +56,9 @@ trait ParallelOps
         });
     }
 
+    /**
+     * @param array<Parallel> $fbs
+     */
     public function parMapN(array $fbs, callable $f): Parallel
     {
         return new static(function () use ($fbs, $f) {

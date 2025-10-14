@@ -3,7 +3,8 @@
     "allow": [
       "Bash(source:*)",
       "Bash(phpbrew use:*)",
-      "Bash(bin/phpcbf:*)"
+      "Bash(bin/phpcbf:*)",
+      "Bash(composer phpstan:*)"
     ],
     "deny": [],
     "ask": []

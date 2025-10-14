@@ -60,6 +60,9 @@ trait FunctorOps
      * @param callable(mixed): B $f
      * @return Kind<Pair>|Functor<Pair>|IO<Pair>
      */
+    /**
+     * @param callable $f
+     */
     public function zipWith($f): Kind | IO
     {
         return $this->map(function ($a) use ($f): Pair {
