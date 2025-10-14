@@ -2,11 +2,12 @@
 
 namespace Tests\Phunkie\Effect\Functions;
 
-use Phunkie\Effect\IO\IO;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 use function Phunkie\Effect\Functions\io\io;
+
+use Phunkie\Effect\IO\IO;
 
 class ioTest extends TestCase
 {

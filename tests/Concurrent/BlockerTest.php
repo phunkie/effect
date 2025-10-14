@@ -2,8 +2,8 @@
 
 namespace Tests\Phunkie\Effect\Concurrent;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 use Phunkie\Effect\Concurrent\Blocker;
 use Phunkie\Effect\Concurrent\ExecutionContext;
 

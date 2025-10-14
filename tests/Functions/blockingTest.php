@@ -27,18 +27,18 @@ class BlockingTest extends TestCase
     #[Test]
     public function it_runs_blocking_operations_in_parallel()
     {
-        if (!class_exists(Runtime::class)) {
+        if (! class_exists(Runtime::class)) {
             $this->markTestSkipped("The 'parallel' extension is not available.");
         }
 
         $ec = new ParallelExecutionContext();
 
-        $io1 = blocking(fn() => (usleep(100_000) ?: 1), $ec);
-        $io2 = blocking(fn() => (usleep(100_000) ?: 2), $ec);
+        $io1 = blocking(fn () => (usleep(100_000) ?: 1), $ec);
+        $io2 = blocking(fn () => (usleep(100_000) ?: 2), $ec);
 
         $start = microtime(true);
 
-        [$result1, $result2] = $io1->parMap2($io2, fn($a, $b) => [$a, $b])->unsafeRunSync();
+        [$result1, $result2] = $io1->parMap2($io2, fn ($a, $b) => [$a, $b])->unsafeRunSync();
 
         $duration = microtime(true) - $start;
 

@@ -2,11 +2,11 @@
 
 namespace Phunkie\Effect\Tests\IO;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-use function Phunkie\Effect\Functions\io\io;
 use function Phunkie\Effect\Functions\io\bracket;
+use function Phunkie\Effect\Functions\io\io;
 
 class BracketTest extends TestCase
 {
@@ -20,6 +20,7 @@ class BracketTest extends TestCase
             $handle = fopen('php://memory', 'r+');
             fwrite($handle, 'test');
             rewind($handle);
+
             return $handle;
         });
         $useResource = function ($resource) {
@@ -54,6 +55,7 @@ class BracketTest extends TestCase
 
         $acquireResource = io(function () use (&$handle) {
             $handle = fopen('php://memory', 'r+');
+
             return $handle;
         });
         $useResource = function ($resource) {

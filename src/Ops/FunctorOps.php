@@ -2,11 +2,11 @@
 
 namespace Phunkie\Effect\Ops;
 
-use Phunkie\Types\Unit;
-use Phunkie\Types\Pair;
-use Phunkie\Types\Kind;
-use Phunkie\Effect\IO\IO;
 use Phunkie\Cats\Functor;
+use Phunkie\Effect\IO\IO;
+use Phunkie\Types\Kind;
+use Phunkie\Types\Pair;
+use Phunkie\Types\Unit;
 
 trait FunctorOps
 {

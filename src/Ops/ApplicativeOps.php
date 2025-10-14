@@ -2,9 +2,9 @@
 
 namespace Phunkie\Effect\Ops;
 
-use Phunkie\Types\Kind;
-use Phunkie\Effect\IO\IO;
 use Phunkie\Cats\Applicative;
+use Phunkie\Effect\IO\IO;
+use Phunkie\Types\Kind;
 
 trait ApplicativeOps
 {

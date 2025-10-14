@@ -2,8 +2,8 @@
 
 namespace Tests\Phunkie\Effect\Concurrent;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 use Phunkie\Effect\Concurrent\FiberExecutionContext;
 
 class FiberExecutionContextTest extends TestCase
@@ -29,6 +29,7 @@ class FiberExecutionContextTest extends TestCase
 
         $thunk = function () use (&$counter) {
             $counter++;
+
             return $counter;
         };
 

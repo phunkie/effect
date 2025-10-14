@@ -9,7 +9,7 @@ class FiberExecutionContext implements ExecutionContext
         $fiber = new \Fiber($thunk);
         $result = $fiber->start();
 
-        while (!$fiber->isTerminated()) {
+        while (! $fiber->isTerminated()) {
             $fiber->resume();
         }
 

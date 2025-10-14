@@ -2,12 +2,12 @@
 
 namespace Tests\Ops\IO;
 
-use Phunkie\Effect\IO\IO;
-use Phunkie\Cats\Functor;
-use Phunkie\Types\Unit;
-use Phunkie\Types\Pair;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Phunkie\Cats\Functor;
+use Phunkie\Effect\IO\IO;
+use Phunkie\Types\Pair;
+use Phunkie\Types\Unit;
 
 class FunctorOpsTest extends TestCase
 {

@@ -2,21 +2,20 @@
 
 namespace Tests\Phunkie\Effect\Functions;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-use Phunkie\Effect\IO\IO;
+use PHPUnit\Framework\TestCase;
 
+use function Phunkie\Effect\Functions\console\printDebug;
+use function Phunkie\Effect\Functions\console\printError;
+use function Phunkie\Effect\Functions\console\printInfo;
 use function Phunkie\Effect\Functions\console\printLines;
 use function Phunkie\Effect\Functions\console\printLn;
-use function Phunkie\Effect\Functions\console\readLine;
-use function Phunkie\Effect\Functions\console\printError;
-use function Phunkie\Effect\Functions\console\printWarning;
-use function Phunkie\Effect\Functions\console\printSuccess;
-use function Phunkie\Effect\Functions\console\printInfo;
-use function Phunkie\Effect\Functions\console\printDebug;
-use function Phunkie\Effect\Functions\console\printTable;
 use function Phunkie\Effect\Functions\console\printProgress;
 use function Phunkie\Effect\Functions\console\printSpinner;
+use function Phunkie\Effect\Functions\console\printSuccess;
+use function Phunkie\Effect\Functions\console\printTable;
+use function Phunkie\Effect\Functions\console\printWarning;
+use function Phunkie\Effect\Functions\console\readLine;
 
 class ConsoleTest extends TestCase
 {
@@ -104,7 +103,7 @@ class ConsoleTest extends TestCase
         $data = [
             ['Name', 'Age', 'City'],
             ['John', '30', 'New York'],
-            ['Jane', '25', 'London']
+            ['Jane', '25', 'London'],
         ];
 
         $expected = "+------+-----+----------+\n" .

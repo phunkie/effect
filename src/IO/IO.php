@@ -2,19 +2,17 @@
 
 namespace Phunkie\Effect\IO;
 
+use Phunkie\Cats\Applicative;
+use Phunkie\Cats\Functor;
+use Phunkie\Cats\Monad;
 use Phunkie\Effect\Cats\Parallel;
 use Phunkie\Effect\Concurrent\AsyncHandle;
-use Phunkie\Effect\Ops\FunctorOps;
 use Phunkie\Effect\Ops\ApplicativeOps;
+use Phunkie\Effect\Ops\FunctorOps;
 use Phunkie\Effect\Ops\MonadOps;
 use Phunkie\Effect\Ops\ParallelOps;
-use Phunkie\Cats\Functor;
-use Phunkie\Cats\Applicative;
-use Phunkie\Cats\Monad;
 use Phunkie\Types\Kind;
 use Phunkie\Validation\Validation;
-use Phunkie\Validation\Success;
-use Phunkie\Validation\Failure;
 
 /**
  * @template A
@@ -45,6 +43,7 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
         if ($handle instanceof AsyncHandle) {
             return $handle->await();
         }
+
         return $handle;
     }
 
@@ -64,7 +63,7 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
      */
     public function attempt(): IO
     {
-        return new IO(fn() => Attempt($this->unsafeRun));
+        return new IO(fn () => Attempt($this->unsafeRun));
     }
 
     public function getTypeArity(): int

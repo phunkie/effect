@@ -2,9 +2,8 @@
 
 namespace Phunkie\Effect\Ops;
 
-use Phunkie\Types\Kind;
 use Phunkie\Effect\IO\IO;
-use Phunkie\Cats\Monad;
+use Phunkie\Types\Kind;
 
 trait MonadOps
 {
@@ -17,6 +16,7 @@ trait MonadOps
     {
         return new IO(function () use ($f) {
             $a = ($this->unsafeRun)();
+
             return $f($a)->unsafeRun();
         });
     }

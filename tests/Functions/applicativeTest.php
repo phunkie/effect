@@ -2,16 +2,18 @@
 
 namespace Tests\Phunkie\Effect\Functions;
 
-use Phunkie\Effect\IO\IO;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 use const Phunkie\Effect\Functions\io\IO;
 
 use function Phunkie\Effect\Functions\io\io;
-use function Phunkie\Functions\applicative\pure;
+
+use Phunkie\Effect\IO\IO;
+
 use function Phunkie\Functions\applicative\ap;
 use function Phunkie\Functions\applicative\map2;
+use function Phunkie\Functions\applicative\pure;
 
 class applicativeTest extends TestCase
 {

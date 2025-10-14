@@ -2,10 +2,10 @@
 
 namespace Tests\Ops\IO;
 
-use Phunkie\Effect\IO\IO;
-use Phunkie\Cats\Monad;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Phunkie\Cats\Monad;
+use Phunkie\Effect\IO\IO;
 
 class MonadOpsTest extends TestCase
 {

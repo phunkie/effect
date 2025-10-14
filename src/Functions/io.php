@@ -20,7 +20,7 @@ function io($value): IO
         return new IO($value);
     }
 
-    return new IO(fn() =>  $value);
+    return new IO(fn () => $value);
 }
 
 /**
@@ -39,12 +39,15 @@ function bracket(IO $acquire, callable $use, callable $release): IO
     return new IO(function () use ($acquire, $use, $release) {
         try {
             $resource = $acquire->unsafeRun();
+
             try {
                 $result = $use($resource)->unsafeRun();
                 $release($resource)->unsafeRun();
+
                 return $result;
             } catch (\Throwable $e) {
                 $release($resource)->unsafeRun();
+
                 throw $e;
             }
         } catch (\Throwable $e) {

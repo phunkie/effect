@@ -11,11 +11,11 @@ trait ParallelOps
     public function parMap2(Parallel $fb, callable $f): Parallel
     {
         return new static(function () use ($fb, $f) {
-            if (!$this->unsafeRun instanceof Blocker && !$this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
-            if (!$fb->unsafeRun instanceof Blocker && !$fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Second effect Blocker isn't in a parallel context");
             }
 
@@ -32,15 +32,15 @@ trait ParallelOps
     public function parMap3(Parallel $fb, Parallel $fc, callable $f): Parallel
     {
         return new static(function () use ($fb, $fc, $f) {
-            if (!$this->unsafeRun instanceof Blocker && !$this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
-            if (!$fb->unsafeRun instanceof Blocker && !$fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Second effect Blocker isn't in a parallel context");
             }
 
-            if (!$fc->unsafeRun instanceof Blocker && !$fc->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            if (! $fc->unsafeRun instanceof Blocker && ! $fc->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Third effect Blocker isn't in a parallel context");
             }
 
@@ -59,19 +59,19 @@ trait ParallelOps
     public function parMapN(array $fbs, callable $f): Parallel
     {
         return new static(function () use ($fbs, $f) {
-            if (!$this->unsafeRun instanceof Blocker && !$this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
             foreach ($fbs as $fb) {
-                if (!$fb->unsafeRun instanceof Blocker && !$fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+                if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                     throw new \Exception("Effect Blocker isn't in a parallel context");
                 }
             }
 
-            $handles = array_map(fn($fb) => ($fb->unsafeRun)(), $fbs);
+            $handles = array_map(fn ($fb) => ($fb->unsafeRun)(), $fbs);
 
-            $results = array_map(fn($handle) => $handle->await(), $handles);
+            $results = array_map(fn ($handle) => $handle->await(), $handles);
 
             return $f(...$results);
         });

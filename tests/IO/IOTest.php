@@ -2,11 +2,10 @@
 
 namespace Tests\Phunkie\Effect\IO;
 
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 use Phunkie\Effect\IO\IO;
 use Phunkie\Types\Kind;
-use Phunkie\Validation\Failure;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 
 class IOTest extends TestCase
 {
@@ -26,6 +25,7 @@ class IOTest extends TestCase
         $counter = 0;
         $io = new IO(function () use (&$counter) {
             $counter++;
+
             return $counter;
         });
 
@@ -56,6 +56,6 @@ class IOTest extends TestCase
 
         $this->assertTrue($result->isLeft());
 
-        $this->assertEquals('test error', $result->fold(fn($e) => $e->getMessage())(fn($x) => $x));
+        $this->assertEquals('test error', $result->fold(fn ($e) => $e->getMessage())(fn ($x) => $x));
     }
 }

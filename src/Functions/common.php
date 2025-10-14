@@ -11,8 +11,7 @@ namespace Phunkie\Effect\IOApp
     const ExitInterrupted = 130; // Script terminated by Control-C
 }
 
-namespace
-{
+namespace {
     $functions = glob(__DIR__ . '/*.php');
     foreach ($functions as $function) {
         if ($function !== __FILE__) {

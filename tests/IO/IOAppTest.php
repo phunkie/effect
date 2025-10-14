@@ -2,15 +2,16 @@
 
 namespace Tests\Phunkie\Effect\IO;
 
-use Phunkie\Effect\IO\IO;
-use Phunkie\Effect\IO\IOApp;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 use function Phunkie\Effect\Functions\io\io;
 
-use const Phunkie\Effect\IOApp\ExitSuccess;
+use Phunkie\Effect\IO\IO;
+use Phunkie\Effect\IO\IOApp;
+
 use const Phunkie\Effect\IOApp\ExitFailure;
+use const Phunkie\Effect\IOApp\ExitSuccess;
 
 class TestApp extends IOApp
 {

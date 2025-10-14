@@ -2,17 +2,20 @@
 
 namespace Tests\Phunkie\Effect\Functions;
 
-use Phunkie\Effect\IO\IO;
-use Phunkie\Types\Unit;
-use Phunkie\Types\Pair;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 use function Phunkie\Effect\Functions\io\io;
-use function Phunkie\Functions\functor\fmap;
+
+use Phunkie\Effect\IO\IO;
+
 use function Phunkie\Functions\functor\allAs;
 use function Phunkie\Functions\functor\asVoid;
+use function Phunkie\Functions\functor\fmap;
 use function Phunkie\Functions\functor\zipWith;
+
+use Phunkie\Types\Pair;
+use Phunkie\Types\Unit;
 
 class functorTest extends TestCase
 {

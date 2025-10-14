@@ -2,8 +2,8 @@
 
 namespace Phunkie\Effect\Concurrent;
 
-use parallel\Runtime;
 use parallel\Future;
+use parallel\Runtime;
 
 class ParallelExecutionContext implements ExecutionContext
 {
@@ -11,6 +11,7 @@ class ParallelExecutionContext implements ExecutionContext
     {
         $runtime = new Runtime(); // creates an isolated thread
         $future = $runtime->run($thunk);
+
         return $future->value(); // blocks until finished
     }
 

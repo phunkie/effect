@@ -3,8 +3,8 @@
 namespace Tests\Phunkie\Effect\Concurrent;
 
 use parallel\Runtime;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 use Phunkie\Effect\Concurrent\ParallelExecutionContext;
 
 class ParallelExecutionContextTest extends TestCase
@@ -12,7 +12,7 @@ class ParallelExecutionContextTest extends TestCase
     #[Test]
     public function it_runs_thunks_in_a_parallel_thread()
     {
-        if (!class_exists(Runtime::class)) {
+        if (! class_exists(Runtime::class)) {
             $this->markTestSkipped("The 'parallel' extension is not available.");
         }
 
@@ -29,14 +29,14 @@ class ParallelExecutionContextTest extends TestCase
     #[Test]
     public function it_executes_multiple_thunks_in_parallel()
     {
-        if (!class_exists(Runtime::class)) {
+        if (! class_exists(Runtime::class)) {
             $this->markTestSkipped("The 'parallel' extension is not available.");
         }
 
         $context = new ParallelExecutionContext();
 
-        $thunk1 = fn() => (usleep(100_000) ?: 1); // 100ms
-        $thunk2 = fn() => (usleep(100_000) ?: 2); // 100ms
+        $thunk1 = fn () => (usleep(100_000) ?: 1); // 100ms
+        $thunk2 = fn () => (usleep(100_000) ?: 2); // 100ms
 
         $start = microtime(true);
 
