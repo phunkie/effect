@@ -19,8 +19,10 @@ class ParallelExecutionContext implements ExecutionContext
         $runtime = new Runtime(); // one thread per async task
         $future = $runtime->run($thunk);
 
-        return new class($future) implements AsyncHandle {
-            public function __construct(private readonly Future $future) {}
+        return new class ($future) implements AsyncHandle {
+            public function __construct(private readonly Future $future)
+            {
+            }
 
             public function await(): mixed
             {

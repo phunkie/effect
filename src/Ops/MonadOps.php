@@ -15,7 +15,7 @@ trait MonadOps
      */
     public function flatMap(callable $f): Kind | IO
     {
-        return new IO(function() use ($f) {
+        return new IO(function () use ($f) {
             $a = ($this->unsafeRun)();
             return $f($a)->unsafeRun();
         });
@@ -26,8 +26,8 @@ trait MonadOps
      */
     public function flatten(): Kind | IO
     {
-        return $this->flatMap(function($x) {
+        return $this->flatMap(function ($x) {
             return $x;
         });
     }
-} 
+}

@@ -1,0 +1,11 @@
+parameters:
+    level: 6
+    paths:
+        - src
+    excludePaths:
+        - src/Functions/common.php
+    ignoreErrors:
+        # Allow mixed types for now in Ops traits (will be fixed as we add type classes)
+        - '#Method .+Ops::.+ has parameter \$.+ with no value type specified in iterable type array#'
+        - '#Method .+Ops::.+ return type has no value type specified in iterable type array#'
+    reportUnmatchedIgnoredErrors: false

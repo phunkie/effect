@@ -17,14 +17,14 @@ class Blocker
     {
         return $this->context->executeAsync($this->thunk);
     }
-    
+
     public function runSync(): mixed
     {
-        return $this->context?->execute($this->thunk);        
+        return $this->context?->execute($this->thunk);
     }
 
     public function blockingContext(): ExecutionContext
     {
         return $this->context ?? new FiberExecutionContext();
     }
-} 
+}

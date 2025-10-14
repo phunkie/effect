@@ -15,7 +15,7 @@ trait ApplicativeOps
      */
     public function pure($a): Applicative
     {
-        return new IO(function() use ($a) {
+        return new IO(function () use ($a) {
             return $a;
         });
     }
@@ -27,13 +27,13 @@ trait ApplicativeOps
      */
     public function apply(Kind | IO $f): Kind | IO
     {
-        return new IO(function() use ($f) {
-            $g = $this->unsafeRun(); 
-    
+        return new IO(function () use ($f) {
+            $g = $this->unsafeRun();
+
             if (is_callable($g)) {
                 return $g($f->unsafeRun());
             }
-            
+
             throw new \TypeError("Internal Error: IO did not produce a callable.");
         });
     }
@@ -47,17 +47,16 @@ trait ApplicativeOps
      */
     public function map2(Kind | IO $fb, callable $f): Kind | IO
     {
-        $curried = new IO(function() use ($f) {
-            return function($a) use ($f) {
-                return function($b) use ($f, $a) {
+        $curried = new IO(function () use ($f) {
+            return function ($a) use ($f) {
+                return function ($b) use ($f, $a) {
                     return $f($a, $b);
                 };
             };
         });
 
         $patial = $curried->apply($this);
-    
+
         return $patial->apply($fb);
-    
     }
-} 
+}

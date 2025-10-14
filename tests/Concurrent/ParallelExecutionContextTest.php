@@ -17,7 +17,9 @@ class ParallelExecutionContextTest extends TestCase
         }
 
         $context = new ParallelExecutionContext();
-        $thunk = function() { return 42; };
+        $thunk = function () {
+            return 42;
+        };
 
         $result = $context->execute($thunk);
 

@@ -13,7 +13,7 @@ class IOTest extends TestCase
     #[Test]
     public function it_can_create_an_io_from_a_callable_and_run_it()
     {
-        $io = new IO(function() {
+        $io = new IO(function () {
             return 42;
         });
 
@@ -24,7 +24,7 @@ class IOTest extends TestCase
     public function it_can_create_an_io_with_side_effects()
     {
         $counter = 0;
-        $io = new IO(function() use (&$counter) {
+        $io = new IO(function () use (&$counter) {
             $counter++;
             return $counter;
         });
@@ -36,7 +36,7 @@ class IOTest extends TestCase
     #[Test]
     public function it_is_a_phunkie_kind()
     {
-        $io = new IO(function() {
+        $io = new IO(function () {
             return 42;
         });
 
@@ -48,14 +48,14 @@ class IOTest extends TestCase
     #[Test]
     public function it_handles_errors_with_attempt()
     {
-        $io = new IO(function() {
+        $io = new IO(function () {
             throw new \RuntimeException('test error');
         });
 
         $result = $io->attempt()->unsafeRun();
 
         $this->assertTrue($result->isLeft());
-        
+
         $this->assertEquals('test error', $result->fold(fn($e) => $e->getMessage())(fn($x) => $x));
     }
 }

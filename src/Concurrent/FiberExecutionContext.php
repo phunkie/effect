@@ -20,8 +20,10 @@ class FiberExecutionContext implements ExecutionContext
     {
         $that = $this;
 
-        return new class($that, $thunk) implements AsyncHandle {
-            public function __construct(private readonly FiberExecutionContext $that, private $thunk) {}
+        return new class ($that, $thunk) implements AsyncHandle {
+            public function __construct(private readonly FiberExecutionContext $that, private $thunk)
+            {
+            }
 
             public function await(): mixed
             {
@@ -29,4 +31,4 @@ class FiberExecutionContext implements ExecutionContext
             }
         };
     }
-} 
+}

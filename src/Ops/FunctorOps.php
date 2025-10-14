@@ -18,7 +18,7 @@ trait FunctorOps
      */
     public function map(callable $f): Kind | IO
     {
-        return new static(function() use ($f) {
+        return new static(function () use ($f) {
             return $f(($this->unsafeRun)());
         });
     }
@@ -30,7 +30,7 @@ trait FunctorOps
      */
     public function lift($f): callable
     {
-        return function($fa) use ($f): Kind | IO {
+        return function ($fa) use ($f): Kind | IO {
             return $fa->map($f);
         };
     }
@@ -42,7 +42,7 @@ trait FunctorOps
      */
     public function as($b): Kind | IO
     {
-        return $this->map(function() use ($b) {
+        return $this->map(function () use ($b) {
             return $b;
         });
     }
@@ -62,7 +62,7 @@ trait FunctorOps
      */
     public function zipWith($f): Kind | IO
     {
-        return $this->map(function($a) use ($f): Pair {
+        return $this->map(function ($a) use ($f): Pair {
             return Pair($a, $f($a));
         });
     }
@@ -77,4 +77,4 @@ trait FunctorOps
     {
         return $this->map($f);
     }
-} 
+}

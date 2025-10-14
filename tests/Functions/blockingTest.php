@@ -6,6 +6,7 @@ use parallel\Runtime;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Phunkie\Effect\Concurrent\ParallelExecutionContext;
+
 use function Phunkie\Effect\Functions\blocking\blocking;
 
 class BlockingTest extends TestCase
@@ -13,7 +14,7 @@ class BlockingTest extends TestCase
     #[Test]
     public function it_runs_a_blocking_operation()
     {
-        $io = blocking(function() {
+        $io = blocking(function () {
             return 42;
         });
 
@@ -45,4 +46,4 @@ class BlockingTest extends TestCase
         $this->assertEquals(2, $result2);
         $this->assertLessThan(0.2, $duration, "Blocking operations should run in parallel (under 200ms).");
     }
-} 
+}

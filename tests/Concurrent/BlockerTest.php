@@ -12,10 +12,12 @@ class BlockerTest extends TestCase
     #[Test]
     public function it_delegates_to_execution_context()
     {
-        $thunk = function() { return 42; };
-        
+        $thunk = function () {
+            return 42;
+        };
+
         $context = $this->createMock(ExecutionContext::class);
-        
+
         $context->expects($this->once())
             ->method('execute')
             ->with($thunk)
@@ -26,4 +28,4 @@ class BlockerTest extends TestCase
 
         $this->assertEquals(42, $result);
     }
-} 
+}

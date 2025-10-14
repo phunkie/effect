@@ -12,7 +12,7 @@ class MonadOpsTest extends TestCase
     #[Test]
     public function it_implements_phunkie_monad_interface()
     {
-        $this->assertInstanceOf(Monad::class, new IO(function() {
+        $this->assertInstanceOf(Monad::class, new IO(function () {
             return 42;
         }));
     }
@@ -20,12 +20,12 @@ class MonadOpsTest extends TestCase
     #[Test]
     public function it_flatmaps_over_io_values()
     {
-        $io = new IO(function() {
+        $io = new IO(function () {
             return 42;
         });
 
-        $result = $io->flatMap(function($x) {
-            return new IO(function() use ($x) {
+        $result = $io->flatMap(function ($x) {
+            return new IO(function () use ($x) {
                 return $x * 2;
             });
         });
@@ -36,8 +36,8 @@ class MonadOpsTest extends TestCase
     #[Test]
     public function it_flattens_nested_io_values()
     {
-        $nested = new IO(function() {
-            return new IO(function() {
+        $nested = new IO(function () {
+            return new IO(function () {
                 return 42;
             });
         });
@@ -48,13 +48,15 @@ class MonadOpsTest extends TestCase
     #[Test]
     public function it_follows_monad_left_identity_law()
     {
-        $f = function($x) {
-            return new IO(function() use ($x) {
+        $f = function ($x) {
+            return new IO(function () use ($x) {
                 return $x * 2;
             });
         };
 
-        $io = new IO(function() { return null; });
+        $io = new IO(function () {
+            return null;
+        });
         $left = $io->pure(21)->flatMap($f);
         $right = $f(21);
 
@@ -67,14 +69,14 @@ class MonadOpsTest extends TestCase
     #[Test]
     public function it_follows_monad_right_identity_law()
     {
-        $io = new IO(function() {
+        $io = new IO(function () {
             return 42;
         });
 
         $this->assertEquals(
             $io->unsafeRun(),
-            $io->flatMap(function($x) {
-                return new IO(function() use ($x) {
+            $io->flatMap(function ($x) {
+                return new IO(function () use ($x) {
                     return $x;
                 });
             })->unsafeRun()
@@ -84,24 +86,24 @@ class MonadOpsTest extends TestCase
     #[Test]
     public function it_follows_monad_associativity_law()
     {
-        $io = new IO(function() {
+        $io = new IO(function () {
             return 21;
         });
 
-        $f = function($x) {
-            return new IO(function() use ($x) {
+        $f = function ($x) {
+            return new IO(function () use ($x) {
                 return $x * 2;
             });
         };
 
-        $g = function($x) {
-            return new IO(function() use ($x) {
+        $g = function ($x) {
+            return new IO(function () use ($x) {
                 return $x + 1;
             });
         };
 
         $left = $io->flatMap($f)->flatMap($g);
-        $right = $io->flatMap(function($x) use ($f, $g) {
+        $right = $io->flatMap(function ($x) use ($f, $g) {
             return $f($x)->flatMap($g);
         });
 
@@ -110,4 +112,4 @@ class MonadOpsTest extends TestCase
             $right->unsafeRun()
         );
     }
-} 
+}

@@ -7,6 +7,7 @@ use Phunkie\Types\Unit;
 use Phunkie\Types\Pair;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+
 use function Phunkie\Effect\Functions\io\io;
 use function Phunkie\Functions\functor\fmap;
 use function Phunkie\Functions\functor\allAs;
@@ -18,11 +19,11 @@ class functorTest extends TestCase
     #[Test]
     public function it_maps_over_io_values_using_fmap()
     {
-        $io = io(function() {
+        $io = io(function () {
             return 42;
         });
 
-        $double = function($x) {
+        $double = function ($x) {
             return $x * 2;
         };
 
@@ -35,7 +36,7 @@ class functorTest extends TestCase
     #[Test]
     public function it_replaces_io_contents_with_constant_value_using_allAs()
     {
-        $io = io(function() {
+        $io = io(function () {
             return 42;
         });
 
@@ -48,7 +49,7 @@ class functorTest extends TestCase
     #[Test]
     public function it_discards_io_contents_replacing_with_unit_using_asVoid()
     {
-        $io = io(function() {
+        $io = io(function () {
             return 42;
         });
 
@@ -61,11 +62,11 @@ class functorTest extends TestCase
     #[Test]
     public function it_zips_io_values_with_mapped_values_using_zipWith()
     {
-        $io = io(function() {
+        $io = io(function () {
             return 42;
         });
 
-        $double = function($x) {
+        $double = function ($x) {
             return $x * 2;
         };
 
@@ -77,4 +78,4 @@ class functorTest extends TestCase
         $this->assertEquals(42, $pair->_1);
         $this->assertEquals(84, $pair->_2);
     }
-} 
+}

@@ -35,31 +35,22 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
 
     public function unsafeRun()
     {
-        try {
-            return ($this->unsafeRun)();
-        } catch (\Throwable $e) {
-            throw $e;
-        }
+        return ($this->unsafeRun)();
     }
 
     public function unsafeRunSync()
     {
-        try {
-            $handle = ($this->unsafeRun)();
-            
-            if ($handle instanceof AsyncHandle) {
-                return $handle->await();
-            }
-            return $handle;
+        $handle = ($this->unsafeRun)();
 
-        } catch (\Throwable $e) {
-            throw $e;
+        if ($handle instanceof AsyncHandle) {
+            return $handle->await();
         }
+        return $handle;
     }
 
     public function handleError(callable $handler): IO
     {
-        return new IO(function() use ($handler) {
+        return new IO(function () use ($handler) {
             try {
                 return ($this->unsafeRun)();
             } catch (\Throwable $e) {

@@ -5,6 +5,7 @@ namespace Tests\Phunkie\Effect\Functions;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Phunkie\Effect\IO\IO;
+
 use function Phunkie\Effect\Functions\console\printLines;
 use function Phunkie\Effect\Functions\console\printLn;
 use function Phunkie\Effect\Functions\console\readLine;
@@ -50,24 +51,16 @@ class ConsoleTest extends TestCase
     #[Test]
     public function it_reads_a_line()
     {
-        $input = "test input\n";
-        $stream = fopen('php://memory', 'r+');
-        fwrite($stream, $input);
-        rewind($stream);
-        
-        $readLine = function(string $prompt) use ($stream): IO {
-            return new IO(function() use ($prompt, $stream) {
-                print($prompt);
-                $input = fgets($stream);
-                return $input === false ? "" : trim($input);
-            });
-        };
-        
+        // Create a temporary file stream with the input we want to simulate
+        $inputStream = fopen('php://memory', 'r+');
+        fwrite($inputStream, "test input\n");
+        rewind($inputStream);
+
         $this->expectOutputString("Enter something: ");
-        $result = $readLine("Enter something: ")->unsafeRun();
-        
+        $result = readLine("Enter something: ", $inputStream)->unsafeRun();
         $this->assertEquals("test input", $result);
-        fclose($stream);
+
+        fclose($inputStream);
     }
 
     #[Test]
@@ -113,14 +106,14 @@ class ConsoleTest extends TestCase
             ['John', '30', 'New York'],
             ['Jane', '25', 'London']
         ];
-        
+
         $expected = "+------+-----+----------+\n" .
                    "| Name | Age | City     |\n" .
                    "+------+-----+----------+\n" .
                    "| John | 30  | New York |\n" .
                    "| Jane | 25  | London   |\n" .
                    "+------+-----+----------+\n";
-        
+
         $this->expectOutputString($expected);
         printTable($data)->unsafeRun();
     }
@@ -138,4 +131,4 @@ class ConsoleTest extends TestCase
         $this->expectOutputString("\rProcessing... |");
         printSpinner("Processing...")->unsafeRun();
     }
-} 
+}

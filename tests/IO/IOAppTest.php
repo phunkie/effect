@@ -6,7 +6,9 @@ use Phunkie\Effect\IO\IO;
 use Phunkie\Effect\IO\IOApp;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+
 use function Phunkie\Effect\Functions\io\io;
+
 use const Phunkie\Effect\IOApp\ExitSuccess;
 use const Phunkie\Effect\IOApp\ExitFailure;
 
@@ -14,7 +16,7 @@ class TestApp extends IOApp
 {
     public function run(?array $args = []): IO
     {
-        return io(function() {
+        return io(function () {
             return ExitSuccess;
         });
     }
@@ -24,9 +26,9 @@ class FailingApp extends IOApp
 {
     public function run(?array $args = []): IO
     {
-        return io(function() {
+        return io(function () {
             throw new \Exception("Test error");
-        })->handleError(function($error) {
+        })->handleError(function ($error) {
             return ExitFailure;
         });
     }
@@ -49,4 +51,4 @@ class IOAppTest extends TestCase
         $result = $app->run()->unsafeRun();
         $this->assertEquals(ExitFailure, $result);
     }
-} 
+}

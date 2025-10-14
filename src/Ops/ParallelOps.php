@@ -10,7 +10,7 @@ trait ParallelOps
 {
     public function parMap2(Parallel $fb, callable $f): Parallel
     {
-        return new static(function() use ($fb, $f) {
+        return new static(function () use ($fb, $f) {
             if (!$this->unsafeRun instanceof Blocker && !$this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
@@ -24,14 +24,14 @@ trait ParallelOps
 
             $a = $handle1->await();
             $b = $handle2->await();
-            
+
             return $f($a, $b);
         });
     }
 
     public function parMap3(Parallel $fb, Parallel $fc, callable $f): Parallel
     {
-        return new static(function() use ($fb, $fc, $f) {
+        return new static(function () use ($fb, $fc, $f) {
             if (!$this->unsafeRun instanceof Blocker && !$this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
@@ -58,7 +58,7 @@ trait ParallelOps
 
     public function parMapN(array $fbs, callable $f): Parallel
     {
-        return new static(function() use ($fbs, $f) {
+        return new static(function () use ($fbs, $f) {
             if (!$this->unsafeRun instanceof Blocker && !$this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }

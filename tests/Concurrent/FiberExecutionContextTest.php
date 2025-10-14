@@ -12,7 +12,9 @@ class FiberExecutionContextTest extends TestCase
     public function it_runs_thunks_in_a_fiber()
     {
         $context = new FiberExecutionContext();
-        $thunk = function() { return 42; };
+        $thunk = function () {
+            return 42;
+        };
 
         $result = $context->execute($thunk);
 
@@ -24,8 +26,8 @@ class FiberExecutionContextTest extends TestCase
     {
         $context = new FiberExecutionContext();
         $counter = 0;
-        
-        $thunk = function() use (&$counter) {
+
+        $thunk = function () use (&$counter) {
             $counter++;
             return $counter;
         };
@@ -36,4 +38,4 @@ class FiberExecutionContextTest extends TestCase
         $this->assertEquals(1, $result1);
         $this->assertEquals(2, $result2);
     }
-} 
+}

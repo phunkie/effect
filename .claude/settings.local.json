@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source:*)",
+      "Bash(phpbrew use:*)",
+      "Bash(bin/phpcbf:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

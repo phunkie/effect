@@ -6,7 +6,7 @@ use Phunkie\Effect\IO\IO;
 
 /**
  * Creates an IO from either a callable or a plain value.
- * 
+ *
  * @template A
  * @param callable|A $value
  * @return IO<A>
@@ -21,12 +21,12 @@ function io($value): IO
     }
 
     return new IO(fn() =>  $value);
-} 
+}
 
 /**
  * Creates an IO that will acquire a resource, use it, and then release it.
  * Ensures the release is always called, even if use fails.
- * 
+ *
  * @template T
  * @template R
  * @param IO<T> $acquire The IO that acquires the resource
@@ -36,7 +36,7 @@ function io($value): IO
  */
 function bracket(IO $acquire, callable $use, callable $release): IO
 {
-    return new IO(function() use ($acquire, $use, $release) {
+    return new IO(function () use ($acquire, $use, $release) {
         try {
             $resource = $acquire->unsafeRun();
             try {
@@ -51,4 +51,4 @@ function bracket(IO $acquire, callable $use, callable $release): IO
             throw $e;
         }
     });
-} 
+}

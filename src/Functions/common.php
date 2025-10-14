@@ -18,5 +18,5 @@ namespace
         if ($function !== __FILE__) {
             require_once $function;
         }
-    }     
+    }
 }
