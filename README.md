@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/phunkie/effect/workflows/CI/badge.svg)](https://github.com/phunkie/effect/actions)
 [![Latest Version](https://img.shields.io/packagist/v/phunkie/effect.svg?style=flat-square)](https://packagist.org/packages/phunkie/effect)
+[![Total Downloads](https://poser.pugx.org/phunkie/effect/downloads)](https://packagist.org/packages/phunkie/effect)
 [![License](https://img.shields.io/packagist/l/phunkie/effect.svg?style=flat-square)](https://github.com/phunkie/effect/blob/main/LICENSE)
 [![PHP Version](https://img.shields.io/packagist/php-v/phunkie/effect.svg?style=flat-square)](https://packagist.org/packages/phunkie/effect)
 
