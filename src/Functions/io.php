@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of Phunkie Effect, A functional effect system for PHP inspired by Cats Effect.
+ *
+ * (c) Marcello Duarte <marcello.duarte@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Phunkie\Effect\Functions\io;
 
 use Phunkie\Effect\IO\IO;
@@ -25,7 +34,7 @@ function io($value): IO
 
 /**
  * Creates an IO that will acquire a resource, use it, and then release it.
- * Ensures the release is always called, even if use fails.
+ * Ensures the release is always called, even if it fails.
  *
  * @template T
  * @template R
@@ -37,20 +46,16 @@ function io($value): IO
 function bracket(IO $acquire, callable $use, callable $release): IO
 {
     return new IO(function () use ($acquire, $use, $release) {
+        $resource = $acquire->unsafeRun();
+
         try {
-            $resource = $acquire->unsafeRun();
+            $result = $use($resource)->unsafeRun();
+            $release($resource)->unsafeRun();
 
-            try {
-                $result = $use($resource)->unsafeRun();
-                $release($resource)->unsafeRun();
-
-                return $result;
-            } catch (\Throwable $e) {
-                $release($resource)->unsafeRun();
-
-                throw $e;
-            }
+            return $result;
         } catch (\Throwable $e) {
+            $release($resource)->unsafeRun();
+
             throw $e;
         }
     });

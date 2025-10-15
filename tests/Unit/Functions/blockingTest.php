@@ -1,6 +1,15 @@
 <?php
 
-namespace Tests\Phunkie\Effect\Functions;
+/*
+ * This file is part of Phunkie Effect, A functional effect system for PHP inspired by Cats Effect.
+ *
+ * (c) Marcello Duarte <marcello.duarte@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Tests\Unit\Phunkie\Effect\Functions;
 
 use parallel\Runtime;
 use PHPUnit\Framework\Attributes\Test;
@@ -9,7 +18,7 @@ use Phunkie\Effect\Concurrent\ParallelExecutionContext;
 
 use function Phunkie\Effect\Functions\blocking\blocking;
 
-class BlockingTest extends TestCase
+class blockingTest extends TestCase
 {
     #[Test]
     public function it_runs_a_blocking_operation()

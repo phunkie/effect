@@ -33,7 +33,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Phunkie\\Effect\\": "tests/"
+            "Tests\\Unit\\Phunkie\\Effect\\": "tests/Unit/"
         }
     },
     "scripts": {
