@@ -89,14 +89,12 @@ $io = processOrder($testOrder);
 Phunkie Effect provides safe, composable concurrency primitives that make it easy to write concurrent programs without the typical pitfalls of shared mutable state.
 
 ```php
-use Phunkie\Effect\IO;
+use function Phunkie\Effect\Functions\io\io;
 
 // Run multiple effects in parallel
-$results = parSequence([
-    fetchUserData($userId),
-    fetchOrderHistory($userId),
-    fetchPreferences($userId)
-]);
+$result = $fetchUserData
+    ->parMap2($fetchOrderHistory, fn($user, $orders) => [$user, $orders])
+    ->unsafeRun();
 ```
 
 ## When to Use Phunkie Effect
