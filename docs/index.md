@@ -4,21 +4,21 @@ A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Ef
 
 ## Table of Contents
 
-1. [Introduction](introduction.md)
-   - What is Phunkie Effect?
-   - Philosophy and design goals
-   - When to use Phunkie Effect
-
-2. [Getting Started](getting-started.md)
+1. [Getting Started](getting-started.md)
    - Installation
    - Basic Usage
    - Your First Effect
 
-3. [IO App and IO Console](io-app.md)
+2. [IO App and IO Console](io-app.md)
    - Console Functions
    - Creating an IO App
    - Exit Codes and Error Handling
    - Best Practices
+
+3. [Combinators](combinators.md)
+   - Core IO Operations
+   - Error Handling
+   - Composition Patterns
 
 4. [Concurrency](concurrency.md)
    - Blockers
@@ -36,34 +36,6 @@ A functional effects library for PHP inspired by Scala's cats-effect. Phunkie Ef
    - Files
    - URL
    - Database
-
-6. [Networks](networks.md)
-    - TCP
-      - Server
-      - Client
-      - Connection Management
-    - UDP
-      - Datagram Handling
-      - Broadcasting
-      - Multicasting
-
-7. [Cookbook](cookbook.md)
-    - Supervisor Patterns
-      - One-for-One Strategy
-      - All-for-One Strategy
-      - Custom Supervision
-    - Shared State with Ref
-      - Atomic Updates
-      - Cross-Fiber Communication
-    - Graceful Shutdown
-      - Resource Cleanup
-      - Signal Handling
-    - Circuit Breakers
-      - Failure Detection
-      - Automatic Recovery
-    - Rate Limiting
-      - Token Bucket
-      - Leaky Bucket
 
 ## Contributing
 
