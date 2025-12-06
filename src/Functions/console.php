@@ -15,12 +15,26 @@ use Phunkie\Effect\IO\IO;
 use Phunkie\Types\ImmList;
 
 const printLn = '\Phunkie\Effect\Functions\console\printLn';
+
+/**
+ * Prints a message to stdout followed by a newline.
+ *
+ * @param string $message The message to print
+ * @return IO<void>
+ */
 function printLn(string $message): IO
 {
     return new IO(fn () => print($message . PHP_EOL));
 }
 
 const printLines = '\Phunkie\Effect\Functions\console\printLines';
+
+/**
+ * Prints a list of messages to stdout, each followed by a newline.
+ *
+ * @param ImmList<string> $lines The lines to print
+ * @return IO<void>
+ */
 function printLines(ImmList $lines): IO
 {
     return new IO(fn () =>
@@ -28,6 +42,14 @@ function printLines(ImmList $lines): IO
 }
 
 const readLine = '\Phunkie\Effect\Functions\console\readLine';
+
+/**
+ * Reads a line from the input stream.
+ *
+ * @param string $prompt Optional prompt to display
+ * @param resource|null $stream Optional input stream (defaults to STDIN)
+ * @return IO<string>
+ */
 function readLine(string $prompt, $stream = null): IO
 {
     return new IO(function () use ($prompt, $stream) {
@@ -40,36 +62,78 @@ function readLine(string $prompt, $stream = null): IO
 }
 
 const printError = '\Phunkie\Effect\Functions\console\printError';
+
+/**
+ * Prints an error message (red) to stdout.
+ *
+ * @param string $message The error message
+ * @return IO<void>
+ */
 function printError(string $message): IO
 {
     return new IO(fn () => print("\033[31mError: {$message}\033[0m" . PHP_EOL));
 }
 
 const printWarning = '\Phunkie\Effect\Functions\console\printWarning';
+
+/**
+ * Prints a warning message (yellow) to stdout.
+ *
+ * @param string $message The warning message
+ * @return IO<void>
+ */
 function printWarning(string $message): IO
 {
     return new IO(fn () => print("\033[33mWarning: {$message}\033[0m" . PHP_EOL));
 }
 
 const printSuccess = '\Phunkie\Effect\Functions\console\printSuccess';
+
+/**
+ * Prints a success message (green) to stdout.
+ *
+ * @param string $message The success message
+ * @return IO<void>
+ */
 function printSuccess(string $message): IO
 {
     return new IO(fn () => print("\033[32mSuccess: {$message}\033[0m" . PHP_EOL));
 }
 
 const printInfo = '\Phunkie\Effect\Functions\console\printInfo';
+
+/**
+ * Prints an info message (cyan) to stdout.
+ *
+ * @param string $message The info message
+ * @return IO<void>
+ */
 function printInfo(string $message): IO
 {
     return new IO(fn () => print("\033[36mInfo: {$message}\033[0m" . PHP_EOL));
 }
 
 const printDebug = '\Phunkie\Effect\Functions\console\printDebug';
+
+/**
+ * Prints a debug message (magenta) to stdout.
+ *
+ * @param string $message The debug message
+ * @return IO<void>
+ */
 function printDebug(string $message): IO
 {
     return new IO(fn () => print("\033[35mDebug: {$message}\033[0m" . PHP_EOL));
 }
 
 const printTable = '\Phunkie\Effect\Functions\console\printTable';
+
+/**
+ * Prints a formatted table to stdout.
+ *
+ * @param array<array<mixed>> $data 2D array of data to print
+ * @return IO<void>
+ */
 function printTable(array $data): IO
 {
     return new IO(function () use ($data) {
@@ -101,6 +165,14 @@ function printTable(array $data): IO
 }
 
 const printProgress = '\Phunkie\Effect\Functions\console\printProgress';
+
+/**
+ * Prints a progress bar to stdout (in-place).
+ *
+ * @param int $current Current progress value
+ * @param int $total Total value
+ * @return IO<void>
+ */
 function printProgress(int $current, int $total): IO
 {
     return new IO(function () use ($current, $total) {
@@ -115,6 +187,13 @@ function printProgress(int $current, int $total): IO
 }
 
 const printSpinner = '\Phunkie\Effect\Functions\console\printSpinner';
+
+/**
+ * Prints a spinner animation with a message to stdout.
+ *
+ * @param string $message The message to display next to spinner
+ * @return IO<void>
+ */
 function printSpinner(string $message): IO
 {
     return new IO(function () use ($message) {

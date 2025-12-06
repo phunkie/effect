@@ -26,10 +26,13 @@ use Phunkie\Effect\IO\IO;
 trait ParallelOps
 {
     /**
+     * Combines two parallel computations using a combining function.
+     * Starts execution of both computations immediately (if in a parallel context).
+     *
      * @template B
      * @template C
-     * @param Parallel<B> $fb
-     * @param callable(A, B): C $f
+     * @param Parallel<B> $fb The second computation
+     * @param callable(A, B): C $f The combining function
      * @return IO<C>
      */
     public function parMap2(Parallel $fb, callable $f): IO
@@ -54,11 +57,13 @@ trait ParallelOps
     }
 
     /**
+     * Combines three parallel computations using a combining function.
+     *
      * @template B
      * @template C
-     * @param Parallel<B> $fb
-     * @param Parallel<C> $fc
-     * @param callable(A, B, C): IO $f
+     * @param Parallel<B> $fb The second computation
+     * @param Parallel<C> $fc The third computation
+     * @param callable(A, B, C): IO $f The combining function
      * @return IO
      */
     public function parMap3(Parallel $fb, Parallel $fc, callable $f): IO
@@ -89,10 +94,12 @@ trait ParallelOps
     }
 
     /**
+     * Combines multiple parallel computations using a combining function.
+     *
      * @template B
      * @template C
-     * @param array<Parallel<B>> $fbs
-     * @param callable(B ...$args): C $f
+     * @param array<Parallel<B>> $fbs Array of computations
+     * @param callable(B ...$args): C $f The combining function
      * @return IO<C>
      */
     public function parMapN(array $fbs, callable $f): IO

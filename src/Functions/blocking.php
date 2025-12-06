@@ -20,6 +20,15 @@ use function Phunkie\Effect\Functions\io\io;
 use Phunkie\Effect\IO\IO;
 
 const blocking = '\Phunkie\Effect\Functions\blocking\blocking';
+
+/**
+ * Wraps a blocking computation in an IO using a Blocker to isolate it.
+ *
+ * @template A
+ * @param \Closure(): A $thunk The blocking operation
+ * @param ExecutionContext|null $context Optional execution context (uses fiber default if null)
+ * @return IO<A>
+ */
 function blocking(Closure $thunk, ?ExecutionContext $context = null): IO
 {
     return io(new Blocker($thunk, $context));

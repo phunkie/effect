@@ -19,8 +19,10 @@ use Phunkie\Effect\IO\IO;
 trait MonadOps
 {
     /**
+     * Binds a function to the IO value, returning a new IO.
+     *
      * @template B
-     * @param callable(A):IO<B> $f
+     * @param callable(A):IO<B> $f The function to bind
      * @return IO<B>
      */
     public function flatMap(callable $f): IO
@@ -33,7 +35,9 @@ trait MonadOps
     }
 
     /**
-     * @return IO<A> where B is the type parameter of the inner IO
+     * Flattens a nested IO structure (IO<IO<A>> -> IO<A>).
+     *
+     * @return IO<A> where A is the type parameter of the inner IO
      */
     public function flatten(): IO
     {

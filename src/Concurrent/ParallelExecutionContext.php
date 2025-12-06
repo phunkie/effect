@@ -15,10 +15,20 @@ use parallel\Future;
 use parallel\Runtime;
 use Throwable;
 
+/**
+ * Execution context using ext-parallel for true parallelism.
+ *
+ * This implementation utilizes the `parallel` extension (requires ZTS PHP)
+ * to execute computations in separate threads.
+ */
 class ParallelExecutionContext implements ExecutionContext
 {
     /**
-     * @throws Throwable
+     * Executes the thunk in a new thread and blocks until completion.
+     *
+     * @param callable(): mixed $thunk The operation to run
+     * @return mixed The result of running the thunk
+     * @throws Throwable If execution fails or ext-parallel is missing
      */
     public function execute(callable $thunk): mixed
     {
@@ -32,6 +42,16 @@ class ParallelExecutionContext implements ExecutionContext
         }
     }
 
+    /**
+     * Executes the thunk asynchronously in a new thread.
+     *
+     * Returns an AsyncHandle that can be awaited to retrieve the result.
+     *
+     * @template A
+     * @param callable(): A $thunk The operation to run
+     * @return AsyncHandle<A> A handle for the result
+     * @throws \RuntimeException If ext-parallel is missing
+     */
     public function executeAsync(callable $thunk): AsyncHandle
     {
         if (\extension_loaded('parallel')) {

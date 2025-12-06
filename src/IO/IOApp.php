@@ -21,7 +21,13 @@ namespace Phunkie\Effect\IO;
 abstract class IOApp
 {
     /**
-     * @return IO<int>
+     * The main entry point for the application.
+     *
+     * This method is called by the runtime and should return an IO effect
+     * that produces an integer exit code.
+     *
+     * @param array<string>|null $args Command line arguments
+     * @return IO<int> The exit code (0 for success, non-zero for failure)
      */
     abstract public function run(?array $args = []): IO;
 }
