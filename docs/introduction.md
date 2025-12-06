@@ -10,9 +10,9 @@ At its core, Phunkie Effect introduces the `IO` monad - a data structure that re
 use Phunkie\Effect\IO;
 
 // This doesn't execute anything - it just describes what should happen
-$program = IO::of(fn() => file_get_contents('config.json'))
+$program = io(fn() => file_get_contents('config.json'))
     ->map(fn($json) => json_decode($json, true))
-    ->flatMap(fn($config) => IO::of(fn() => connectToDatabase($config['db'])));
+    ->flatMap(fn($config) => io(fn() => connectToDatabase($config['db'])));
 
 // The program only runs when you explicitly call unsafeRun()
 $result = $program->unsafeRun();
@@ -30,7 +30,7 @@ $data = file_get_contents('data.txt'); // Executes now!
 $result = processData($data);
 
 // With IO - side effects are described, not executed
-$program = IO::of(fn() => file_get_contents('data.txt'))
+$program = io(fn() => file_get_contents('data.txt'))
     ->map(fn($data) => processData($data));
 // Nothing has executed yet - we can compose, test, and reason about it
 ```
@@ -40,9 +40,9 @@ $program = IO::of(fn() => file_get_contents('data.txt'))
 Effects should compose just like pure functions. Phunkie Effect provides a rich set of combinators that allow you to build complex programs from simple building blocks.
 
 ```php
-$readConfig = IO::of(fn() => file_get_contents('config.json'));
-$parseJson = fn($json) => IO::of(fn() => json_decode($json, true));
-$validateConfig = fn($config) => IO::of(fn() => validate($config));
+$readConfig = io(fn() => file_get_contents('config.json'));
+$parseJson = fn($json) => io(fn() => json_decode($json, true));
+$validateConfig = fn($config) => io(fn() => validate($config));
 
 // Compose them together
 $program = $readConfig
@@ -52,16 +52,18 @@ $program = $readConfig
 
 ### Resource Safety
 
-Managing resources (files, database connections, network sockets) is error-prone. Phunkie Effect provides automatic resource management through brackets and the Resource type, ensuring cleanup happens even when errors occur.
+Managing resources (files, database connections, network sockets) is error-prone. Phunkie Effect provides automatic resource management through brackets, ensuring cleanup happens even when errors occur.
 
 ```php
-use Phunkie\Effect\Resource;
+use function Phunkie\Effect\Functions\blocking\blocking;
 
-$program = Resource::make(
-    IO::of(fn() => fopen('file.txt', 'r')),
-    fn($handle) => IO::of(fn() => fclose($handle))
-)->use(fn($handle) => 
-    IO::of(fn() => fread($handle, 1024))
+$result = bracket(
+    // Acquire
+    blocking(fn() => fopen('file.txt', 'r')),
+    // Use
+    fn($handle) => blocking(fn() => fread($handle, 1024)),
+    // Release
+    fn($handle) => blocking(fn() => fclose($handle))
 );
 ```
 
@@ -90,7 +92,7 @@ Phunkie Effect provides safe, composable concurrency primitives that make it eas
 use Phunkie\Effect\IO;
 
 // Run multiple effects in parallel
-$results = IO::parSequence([
+$results = parSequence([
     fetchUserData($userId),
     fetchOrderHistory($userId),
     fetchPreferences($userId)
