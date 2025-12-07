@@ -17,7 +17,7 @@
         "phpunit/phpunit": "^10.5",
         "phunkie/console": "^1.0.0",
         "phpstan/phpstan": "^2.1",
-        "friendsofphp/php-cs-fixer": "^3.75"
+        "friendsofphp/php-cs-fixer": "^3.90"
     },
     "suggest": {
         "ext-parallel": "Required for parallel execution using threads. PHP must be compiled with ZTS support."
