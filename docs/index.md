@@ -66,9 +66,9 @@ Master the fundamental building blocks:
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+## Licence
 
-This project is licensed under the MIT Licence - see the LICENSE file for details.
+This project is licensed under the MIT Licence - see the LICENCE file for details.
 
 ## Acknowledgments
 
