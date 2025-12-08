@@ -9,24 +9,14 @@
             "email": "marcello.duarte@gmail.com"
         }
     ],
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../phunkie"
-        },
-        {
-            "type": "path",
-            "url": "../phpstan"
-        }
-    ],
     "require": {
         "php": "^8.2 || ^8.3 || ^8.4",
-        "phunkie/phunkie": "dev-developing-1.0.0 as 1.0.0"
+        "phunkie/phunkie": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5",
         "phpstan/phpstan": "^2.1",
-        "phunkie/phpstan": "@dev",
+        "phunkie/phpstan": "^1.0",
         "friendsofphp/php-cs-fixer": "^3.90"
     },
     "suggest": {
