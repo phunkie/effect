@@ -83,9 +83,12 @@ trait FunctorOps
      */
     public function zipWith($f): IO
     {
-        return $this->map(function ($a) use ($f): Pair {
-            return Pair($a, $f($a));
-        });
+        return $this->map(
+            /** @return Pair<A, B> */
+            function ($a) use ($f): Pair {
+                return Pair($a, $f($a));
+            }
+        );
     }
 
     /**

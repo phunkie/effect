@@ -70,6 +70,16 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
     }
 
     /**
+     * Returns the underlying unsafe runner callable.
+     *
+     * @return callable(): A
+     */
+    public function getUnsafeRun(): callable
+    {
+        return $this->unsafeRun;
+    }
+
+    /**
      * Executes the effect synchronously, awaiting any async handles.
      *
      * @return A
@@ -110,11 +120,16 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
      * This mirrors the `attempt` behavior in Scala/Cats, where the result
      * is lifted into an Either (here Validation) to handle errors as values.
      *
-     * @return IO<Validation<Throwable, A>>
+     * @return IO<Validation<\Throwable, A>> IO containing either Success(A) or Failure(Throwable)
      */
     public function attempt(): IO
     {
-        return new IO(fn () => Attempt($this->unsafeRun));
+        $run = $this->unsafeRun;
+
+        return new IO(
+            /** @return Validation<\Throwable, A> */
+            fn () => Attempt($run)
+        );
     }
 
     /**

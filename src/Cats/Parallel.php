@@ -31,4 +31,11 @@ interface Parallel
      * @return Parallel<C> The result of combined computation
      */
     public function parMap2(Parallel $fb, callable $f): Parallel;
+
+    /**
+     * Returns the underlying unsafe runner.
+     *
+     * @return callable(): A
+     */
+    public function getUnsafeRun(): callable;
 }

@@ -38,16 +38,18 @@ trait ParallelOps
     public function parMap2(Parallel $fb, callable $f): IO
     {
         return io(function () use ($fb, $f) {
-            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runA = $this->unsafeRun;
+            if (! $runA instanceof Blocker || ! $runA->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
-            if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runB = $fb->getUnsafeRun();
+            if (! $runB instanceof Blocker || ! $runB->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Second effect Blocker isn't in a parallel context");
             }
 
-            $handle1 = ($this->unsafeRun)();
-            $handle2 = ($fb->unsafeRun)();
+            $handle1 = $runA();
+            $handle2 = $runB();
 
             $a = $handle1->await();
             $b = $handle2->await();
@@ -69,21 +71,24 @@ trait ParallelOps
     public function parMap3(Parallel $fb, Parallel $fc, callable $f): IO
     {
         return io(function () use ($fb, $fc, $f) {
-            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runA = $this->unsafeRun;
+            if (! $runA instanceof Blocker || ! $runA->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
-            if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runB = $fb->getUnsafeRun();
+            if (! $runB instanceof Blocker || ! $runB->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Second effect Blocker isn't in a parallel context");
             }
 
-            if (! $fc->unsafeRun instanceof Blocker && ! $fc->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runC = $fc->getUnsafeRun();
+            if (! $runC instanceof Blocker || ! $runC->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Third effect Blocker isn't in a parallel context");
             }
 
-            $handle1 = ($this->unsafeRun)();
-            $handle2 = ($fb->unsafeRun)();
-            $handle3 = ($fc->unsafeRun)();
+            $handle1 = $runA();
+            $handle2 = $runB();
+            $handle3 = $runC();
 
             $a = $handle1->await();
             $b = $handle2->await();
@@ -105,17 +110,21 @@ trait ParallelOps
     public function parMapN(array $fbs, callable $f): IO
     {
         return io(function () use ($fbs, $f) {
-            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runA = $this->unsafeRun;
+            if (! $runA instanceof Blocker || ! $runA->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
+            $runners = [];
             foreach ($fbs as $fb) {
-                if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+                $runner = $fb->getUnsafeRun();
+                if (! $runner instanceof Blocker || ! $runner->blockingContext() instanceof ParallelExecutionContext) {
                     throw new \Exception("Effect Blocker isn't in a parallel context");
                 }
+                $runners[] = $runner;
             }
 
-            $handles = array_map(fn ($fb) => ($fb->unsafeRun)(), $fbs);
+            $handles = array_map(fn (Blocker $runner) => $runner(), $runners);
 
             $results = array_map(fn ($handle) => $handle->await(), $handles);
 
