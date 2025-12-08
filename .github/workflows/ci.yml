@@ -26,7 +26,7 @@ jobs:
           path: phunkie
 
       - name: Configure path repository
-        run: composer config repositories.0.url phunkie
+        run: sed -i "s|url\": \"../phunkie\"|url\": \"phunkie\"|g" composer.json
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -95,7 +95,7 @@ jobs:
           path: phunkie
 
       - name: Configure path repository
-        run: composer config repositories.0.url phunkie
+        run: sed -i "s|url\": \"../phunkie\"|url\": \"phunkie\"|g" composer.json
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
