@@ -19,14 +19,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Checkout phunkie
-        uses: actions/checkout@v4
-        with:
-          repository: phunkie/phunkie
-          path: phunkie
-
-      - name: Configure path repository
-        run: sed -i "s|url\": \"../phunkie\"|url\": \"phunkie\"|g" composer.json
+      - name: Unset local path repositories
+        run: |
+          composer config --unset repositories.0
+          composer config --unset repositories.1
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -88,14 +84,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Checkout phunkie
-        uses: actions/checkout@v4
-        with:
-          repository: phunkie/phunkie
-          path: phunkie
-
-      - name: Configure path repository
-        run: sed -i "s|url\": \"../phunkie\"|url\": \"phunkie\"|g" composer.json
+      - name: Unset local path repositories
+        run: |
+          composer config --unset repositories.0
+          composer config --unset repositories.1
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
