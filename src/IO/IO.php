@@ -25,7 +25,18 @@ use Phunkie\Validation\Validation;
 use Throwable;
 
 /**
- * @template A
+ * The IO Monad.
+ *
+ * IO represents a computation that performs side effects.
+ * It is lazily evaluated, meaning the side effects are not performed until
+ * `unsafeRun()` or `unsafeRunSync()` is called.
+ *
+ * It is the core data type of the effect system, supporting:
+ * - Sequential execution (flatMap)
+ * - Parallel execution (via Parallel type class)
+ * - Error handling
+ *
+ * @template-covariant A
  */
 class IO implements Functor, Applicative, Monad, Parallel, Kind
 {
@@ -36,16 +47,44 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
 
     private $unsafeRun;
 
+    /**
+     * @param callable(): A $unsafeRun The effectful computation
+     */
     public function __construct(callable $unsafeRun)
     {
         $this->unsafeRun = $unsafeRun;
     }
 
+    /**
+     * Executes the effect and returns the result.
+     *
+     * WARNING: This method performs side effects. It should ideally only be called
+     * at the "end of the world" (e.g., in the main entry point of the application).
+     *
+     * @return A
+     * @throws Throwable
+     */
     public function unsafeRun(): mixed
     {
         return ($this->unsafeRun)();
     }
 
+    /**
+     * Returns the underlying unsafe runner callable.
+     *
+     * @return callable(): A
+     */
+    public function getUnsafeRun(): callable
+    {
+        return $this->unsafeRun;
+    }
+
+    /**
+     * Executes the effect synchronously, awaiting any async handles.
+     *
+     * @return A
+     * @throws Throwable
+     */
     public function unsafeRunSync(): mixed
     {
         $handle = ($this->unsafeRun)();
@@ -57,6 +96,13 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
         return $handle;
     }
 
+    /**
+     * Handles an error that occurred during the execution of this IO.
+     *
+     * @template B
+     * @param callable(Throwable): B $handler Function to recover from the error
+     * @return IO<A|B>
+     */
     public function handleError(callable $handler): IO
     {
         return new IO(function () use ($handler) {
@@ -69,18 +115,38 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
     }
 
     /**
-     * @return IO<Validation<Throwable, A>>
+     * Attempts to execute the effect, capturing any error in a Validation.
+     *
+     * This mirrors the `attempt` behavior in Scala/Cats, where the result
+     * is lifted into an Either (here Validation) to handle errors as values.
+     *
+     * @return IO<Validation<\Throwable, A>> IO containing either Success(A) or Failure(Throwable)
      */
     public function attempt(): IO
     {
-        return new IO(fn () => Attempt($this->unsafeRun));
+        $run = $this->unsafeRun;
+
+        return new IO(
+            /** @return Validation<\Throwable, A> */
+            fn () => Attempt($run)
+        );
     }
 
+    /**
+     * Returns the arity of the IO type constructor.
+     *
+     * @return int Always 1 for IO<A>
+     */
     public function getTypeArity(): int
     {
         return 1;
     }
 
+    /**
+     * Returns the type variable names for IO.
+     *
+     * @return array<string> Always ['A']
+     */
     public function getTypeVariables(): array
     {
         return ['A'];
