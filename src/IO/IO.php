@@ -36,7 +36,7 @@ use Throwable;
  * - Parallel execution (via Parallel type class)
  * - Error handling
  *
- * @template A
+ * @template-covariant A
  */
 class IO implements Functor, Applicative, Monad, Parallel, Kind
 {

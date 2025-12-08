@@ -13,6 +13,7 @@ namespace Phunkie\Effect\Functions\console;
 
 use Phunkie\Effect\IO\IO;
 use Phunkie\Types\ImmList;
+use Phunkie\Types\Unit;
 
 const printLn = '\Phunkie\Effect\Functions\console\printLn';
 
@@ -20,11 +21,15 @@ const printLn = '\Phunkie\Effect\Functions\console\printLn';
  * Prints a message to stdout followed by a newline.
  *
  * @param string $message The message to print
- * @return IO<void>
+ * @return IO<Unit>
  */
 function printLn(string $message): IO
 {
-    return new IO(fn () => print($message . PHP_EOL));
+    return new IO(function () use ($message): Unit {
+        print($message . PHP_EOL);
+
+        return Unit();
+    });
 }
 
 const printLines = '\Phunkie\Effect\Functions\console\printLines';
@@ -33,12 +38,15 @@ const printLines = '\Phunkie\Effect\Functions\console\printLines';
  * Prints a list of messages to stdout, each followed by a newline.
  *
  * @param ImmList<string> $lines The lines to print
- * @return IO<void>
+ * @return IO<Unit>
  */
 function printLines(ImmList $lines): IO
 {
-    return new IO(fn () =>
-        $lines->withEach(fn ($message) => print($message . PHP_EOL)));
+    return new IO(function () use ($lines): Unit {
+        $lines->withEach(fn ($message) => print($message . PHP_EOL));
+
+        return Unit();
+    });
 }
 
 const readLine = '\Phunkie\Effect\Functions\console\readLine';
