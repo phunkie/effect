@@ -1,3 +1,6 @@
+includes:
+    - vendor/phunkie/phpstan/extension.neon
+
 parameters:
     level: 5
     paths:
@@ -9,8 +12,10 @@ parameters:
         # Kind is used to simulate HKTs in PHP - it's intentionally not generic
         - '#PHPDoc tag @param .+ contains generic type Phunkie\\Types\\Kind\<.+\> but interface Phunkie\\Types\\Kind is not generic#'
         
-        # Generic closure inference: PHPStan can't infer generic types through closures/lambdas
-        # These methods return correctly typed values but PHPStan loses the type info
-        - '#Method .+::zipWith\(\) should return .+ but returns .+Pair\>#'
-        - '#Method .+::attempt\(\) should return .+ but returns .+Validation\<mixed#'
+        # Method body inference: PHPStan can't infer generic types through closures in method bodies
+        # The phunkie/phpstan extension provides correct types at CALL SITES
+        # These ignores suppress false positives in the method DEFINITIONS
+        - '#Method .+::zipWith\(\) should return .+ but returns .+Pair#'
+        - '#Method .+::attempt\(\) should return .+ but returns .+Validation#'
     reportUnmatchedIgnoredErrors: false
+
