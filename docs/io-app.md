@@ -140,11 +140,7 @@ class MyApp extends IOApp
 
     public function run(?array $args = []): IO
     {
-        return $this->parse($args)->fold(
-            fn($errors) => $this->showUsage($errors)
-        )(
-            fn($options) => $this->processOptions($options)
-        );
+        return $this->parse($args)->flatMap(fn($options) => $this->processOptions($options));
     }
 
     private function processOptions($options): IO
