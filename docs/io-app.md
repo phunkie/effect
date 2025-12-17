@@ -66,16 +66,21 @@ To create an IO application, extend the `IOApp` class and implement the `run` me
 
 ```php
 use Phunkie\Effect\IO\IOApp;
-use function Phunkie\Effect\Functions\io\io;
+use Phunkie\Effect\IO\IO;
 use function Phunkie\Effect\Functions\console\printLn;
 use const Phunkie\Effect\IOApp\ExitSuccess;
 
 class MyApp extends IOApp
 {
+    public function __construct()
+    {
+        parent::__construct("1.0.0"); // Optional version string
+    }
+
     /**
      * @return IO<int>
      */
-    public function run(): IO
+    public function run(?array $args = []): IO
     {
         return printLn("Hello, Effects!")
             ->map(fn() => ExitSuccess);
@@ -85,18 +90,221 @@ class MyApp extends IOApp
 
 The `run` method must return an `IO` that will be executed when the application starts. The return value of the IO will be used as the application's exit code.
 
+### Version Support
+
+IOApp automatically provides `--version` and `-v` flags. You can specify your application version in the constructor:
+
+```php
+class MyApp extends IOApp
+{
+    public function __construct()
+    {
+        parent::__construct("2.1.0");
+    }
+    
+    // ... rest of implementation
+}
+```
+
+Running with the version flag:
+```bash
+$ bin/phunkie MyApp.php --version
+2.1.0
+```
+
+## Command-Line Argument Parsing
+
+IOApp provides a powerful DSL for defining and parsing command-line arguments:
+
+```php
+use Phunkie\Effect\IO\IOApp;
+use Phunkie\Effect\IO\IO;
+use function Phunkie\Effect\Functions\ioapp\arguments;
+use function Phunkie\Effect\Functions\ioapp\option;
+use const Phunkie\Effect\Functions\ioapp\Required;
+use const Phunkie\Effect\Functions\ioapp\Optional;
+use const Phunkie\Effect\Functions\ioapp\NoInput;
+use const Phunkie\Effect\Functions\ioapp\Negatable;
+
+class MyApp extends IOApp
+{
+    protected function define(): Validation
+    {
+        return arguments(
+            option('f', 'file', 'Input file path', Required),
+            option('o', 'output', 'Output file path', Optional),
+            option('v', 'verbose', 'Enable verbose output', NoInput),
+            option('c', 'color', 'Enable colored output', Negatable)
+        );
+    }
+
+    public function run(?array $args = []): IO
+    {
+        return $this->parse($args)->fold(
+            fn($errors) => $this->showUsage($errors)
+        )(
+            fn($options) => $this->processOptions($options)
+        );
+    }
+
+    private function processOptions($options): IO
+    {
+        return new IO(function() use ($options) {
+            // Access parsed options
+            $file = $options->fetch('file')->getOrElse('default.txt');
+            $verbose = $options->has('verbose');
+            
+            // Access positional arguments
+            $positionalArgs = $options->args;
+            
+            // Your application logic here
+            return 0;
+        });
+    }
+}
+```
+
+### Option Formats
+
+- **Required**: Option must have a value (`-f file.txt` or `--file=file.txt`)
+- **Optional**: Option may have a value, defaults to `true` if present without value
+- **NoInput**: Flag option, no value expected (`-v` or `--verbose`)
+- **Negatable**: Can be negated with `no-` prefix (`--color` or `--no-color`)
+
+### Accessing Parsed Options
+
+```php
+// Check if option exists
+if ($options->has('verbose')) {
+    // ...
+}
+
+// Fetch option value (returns Either<Error, Input>)
+$options->fetch('file')->fold(
+    fn($error) => printLn("File not specified"),
+    fn($input) => printLn("File: " . $input->value)
+);
+
+// Get with default
+$file = $options->fetch('file')->getOrElse('default.txt');
+
+// Access positional arguments
+$files = $options->args; // Array of non-option arguments
+```
+
+### Built-in Options
+
+IOApp automatically provides:
+- `-h, --help`: Display usage information
+- `-v, --version`: Display application version
+
 ## Running with IO Console
 
-Phunkie Effects provides a console application to run your IO apps. After installing the Phunkie console, you can run your application using:
+Phunkie Effects provides a console application to run your IO apps in multiple ways:
+
+### Running IOApp Classes
+
+You can run an IOApp by passing a file that returns an instance:
 
 ```bash
-$ bin/phunkie MyApp
+$ bin/phunkie MyApp.php
 Hello, Effects!
 ```
 
+The file should return an IOApp instance:
+
+```php
+<?php
+// MyApp.php
+require 'vendor/autoload.php';
+
+use Phunkie\Effect\IO\IOApp;
+use Phunkie\Effect\IO\IO;
+use function Phunkie\Effect\Functions\console\printLn;
+
+class MyApp extends IOApp
+{
+    public function run(?array $args = []): IO
+    {
+        return printLn("Hello, Effects!")
+            ->map(fn() => 0);
+    }
+}
+
+return new MyApp();
+```
+
+### Implicit IOApp Instantiation
+
+You can also define an IOApp class without explicitly returning an instance. The console will automatically detect and instantiate it:
+
+```php
+<?php
+// MyApp.php
+require 'vendor/autoload.php';
+
+use Phunkie\Effect\IO\IOApp;
+use Phunkie\Effect\IO\IO;
+use function Phunkie\Effect\Functions\console\printLn;
+
+class MyApp extends IOApp
+{
+    public function run(?array $args = []): IO
+    {
+        return printLn("Hello, Effects!")
+            ->map(fn() => 0);
+    }
+}
+
+// No need to return new MyApp() - it's detected automatically!
+```
+
+### Running Plain IO
+
+You can also run a file that returns a plain `IO` value:
+
+```php
+<?php
+// hello.php
+require 'vendor/autoload.php';
+
+use Phunkie\Effect\IO\IO;
+use function Phunkie\Effect\Functions\console\printLn;
+
+return printLn("Hello from IO!")
+    ->map(fn() => 0);
+```
+
+```bash
+$ bin/phunkie hello.php
+Hello from IO!
+```
+
+### Passing Arguments
+
+Arguments are passed to the IOApp's `run` method:
+
+```php
+class MyApp extends IOApp
+{
+    public function run(?array $args = []): IO
+    {
+        return new IO(function() use ($args) {
+            echo "Arguments: " . implode(", ", $args) . "\n";
+            return 0;
+        });
+    }
+}
+```
+
+```bash
+$ bin/phunkie MyApp.php arg1 arg2 arg3
+Arguments: MyApp.php, arg1, arg2, arg3
+```
+
 The console will:
-1. Load your application class
-2. Execute the `run` method
+1. Load your application class or IO
+2. Execute the `run` method (for IOApp) or the IO directly
 3. Handle any errors that occur during execution
 4. Return the appropriate exit code
 
