@@ -14,13 +14,15 @@ namespace Phunkie\Effect\Functions\io;
 use Phunkie\Effect\IO\IO;
 
 /**
- * Creates an IO from either a callable or a plain value.
+ * Creates an IO effect from a value or a callable.
+ *
+ * If the input is a callable, it is wrapped in an IO as a thunk (lazy execution).
+ * If the input is a value, it is wrapped in an IO that returns that value (pure).
  *
  * @template A
- * @param callable|A $value
+ * @param callable(): A|A $value The side-effecting function or pure value
  * @return IO<A>
  */
-
 const io = "\\Phunkie\\Effect\\Functions\\io\\io";
 const IO = "\\Phunkie\\Effect\\Functions\\io\\io";
 function io($value): IO

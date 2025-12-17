@@ -11,14 +11,29 @@
 
 namespace Phunkie\Effect\Concurrent;
 
+/**
+ * Interface for execution contexts.
+ *
+ * An ExecutionContext defines how computations are executed. Implementations
+ * may execute code synchronously (e.g., in a Fiber) or asynchronously
+ * (e.g., using ext-parallel threads).
+ */
 interface ExecutionContext
 {
     /**
      * Runs the given thunk in this execution context.
      *
-     * @param callable $thunk The operation to run
+     * @param callable(): mixed $thunk The operation to run
      * @return mixed The result of running the thunk
      */
     public function execute(callable $thunk): mixed;
+
+    /**
+     * Runs the given thunk asynchronously in this execution context.
+     *
+     * @template A
+     * @param callable(): A $thunk The operation to run
+     * @return AsyncHandle<A> A handle for the result
+     */
     public function executeAsync(callable $thunk): AsyncHandle;
 }

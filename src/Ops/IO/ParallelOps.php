@@ -26,25 +26,30 @@ use Phunkie\Effect\IO\IO;
 trait ParallelOps
 {
     /**
+     * Combines two parallel computations using a combining function.
+     * Starts execution of both computations immediately (if in a parallel context).
+     *
      * @template B
      * @template C
-     * @param Parallel<B> $fb
-     * @param callable(A, B): C $f
+     * @param Parallel<B> $fb The second computation
+     * @param callable(A, B): C $f The combining function
      * @return IO<C>
      */
     public function parMap2(Parallel $fb, callable $f): IO
     {
         return io(function () use ($fb, $f) {
-            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runA = $this->unsafeRun;
+            if (! $runA instanceof Blocker || ! $runA->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
-            if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runB = $fb->getUnsafeRun();
+            if (! $runB instanceof Blocker || ! $runB->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Second effect Blocker isn't in a parallel context");
             }
 
-            $handle1 = ($this->unsafeRun)();
-            $handle2 = ($fb->unsafeRun)();
+            $handle1 = $runA();
+            $handle2 = $runB();
 
             $a = $handle1->await();
             $b = $handle2->await();
@@ -54,31 +59,36 @@ trait ParallelOps
     }
 
     /**
+     * Combines three parallel computations using a combining function.
+     *
      * @template B
      * @template C
-     * @param Parallel<B> $fb
-     * @param Parallel<C> $fc
-     * @param callable(A, B, C): IO $f
+     * @param Parallel<B> $fb The second computation
+     * @param Parallel<C> $fc The third computation
+     * @param callable(A, B, C): IO $f The combining function
      * @return IO
      */
     public function parMap3(Parallel $fb, Parallel $fc, callable $f): IO
     {
         return io(function () use ($fb, $fc, $f) {
-            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runA = $this->unsafeRun;
+            if (! $runA instanceof Blocker || ! $runA->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
-            if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runB = $fb->getUnsafeRun();
+            if (! $runB instanceof Blocker || ! $runB->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Second effect Blocker isn't in a parallel context");
             }
 
-            if (! $fc->unsafeRun instanceof Blocker && ! $fc->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runC = $fc->getUnsafeRun();
+            if (! $runC instanceof Blocker || ! $runC->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("Third effect Blocker isn't in a parallel context");
             }
 
-            $handle1 = ($this->unsafeRun)();
-            $handle2 = ($fb->unsafeRun)();
-            $handle3 = ($fc->unsafeRun)();
+            $handle1 = $runA();
+            $handle2 = $runB();
+            $handle3 = $runC();
 
             $a = $handle1->await();
             $b = $handle2->await();
@@ -89,26 +99,32 @@ trait ParallelOps
     }
 
     /**
+     * Combines multiple parallel computations using a combining function.
+     *
      * @template B
      * @template C
-     * @param array<Parallel<B>> $fbs
-     * @param callable(B ...$args): C $f
+     * @param array<Parallel<B>> $fbs Array of computations
+     * @param callable(B ...$args): C $f The combining function
      * @return IO<C>
      */
     public function parMapN(array $fbs, callable $f): IO
     {
         return io(function () use ($fbs, $f) {
-            if (! $this->unsafeRun instanceof Blocker && ! $this->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+            $runA = $this->unsafeRun;
+            if (! $runA instanceof Blocker || ! $runA->blockingContext() instanceof ParallelExecutionContext) {
                 throw new \Exception("First effect Blocker isn't in a parallel context");
             }
 
+            $runners = [];
             foreach ($fbs as $fb) {
-                if (! $fb->unsafeRun instanceof Blocker && ! $fb->unsafeRun->blockingContext() instanceof ParallelExecutionContext) {
+                $runner = $fb->getUnsafeRun();
+                if (! $runner instanceof Blocker || ! $runner->blockingContext() instanceof ParallelExecutionContext) {
                     throw new \Exception("Effect Blocker isn't in a parallel context");
                 }
+                $runners[] = $runner;
             }
 
-            $handles = array_map(fn ($fb) => ($fb->unsafeRun)(), $fbs);
+            $handles = array_map(fn (Blocker $runner) => $runner(), $runners);
 
             $results = array_map(fn ($handle) => $handle->await(), $handles);
 

@@ -23,8 +23,10 @@ use Phunkie\Types\Unit;
 trait FunctorOps
 {
     /**
+     * Maps a function over the IO value.
+     *
      * @template B
-     * @param callable(A): B $f
+     * @param callable(A): B $f The function to apply
      * @return IO<B>
      */
     public function map(callable $f): IO
@@ -35,8 +37,10 @@ trait FunctorOps
     }
 
     /**
+     * Lifts a function to operate on IO values.
+     *
      * @template B
-     * @param callable(A): B $f
+     * @param callable(A): B $f The function to lift
      * @return callable(IO): IO<B>
      */
     public function lift($f): callable
@@ -47,8 +51,10 @@ trait FunctorOps
     }
 
     /**
+     * Replaces the IO value with a constant value.
+     *
      * @template B
-     * @param B $b
+     * @param B $b The constant value
      * @return IO<B>
      */
     public function as(mixed $b): IO
@@ -59,6 +65,8 @@ trait FunctorOps
     }
 
     /**
+     * Discards the IO value and returns Unit.
+     *
      * @return IO<Unit>
      */
     public function void(): IO
@@ -67,21 +75,26 @@ trait FunctorOps
     }
 
     /**
+     * Paris the IO value with the result of applying a function to it.
+     *
      * @template B
-     * @param callable(A): B $f
+     * @param callable(A): B $f The function to produce the second element
      * @return IO<Pair<A, B>>
-     */
-    /**
-     * @param callable $f
      */
     public function zipWith($f): IO
     {
-        return $this->map(function ($a) use ($f): Pair {
-            return Pair($a, $f($a));
-        });
+        return $this->map(
+            /** @return Pair<A, B> */
+            function ($a) use ($f): Pair {
+                return Pair($a, $f($a));
+            }
+        );
     }
 
     /**
+     * Invariant map (not used for IO, but part of Functor in some contexts).
+     * IO is covariant, so this delegates to map.
+     *
      * @template B
      * @param callable(A): B $f
      * @param callable(B): A $g
