@@ -88,4 +88,22 @@ abstract class IOApp
     {
         return $this->define()->map(fn ($options) => $options->parse($args));
     }
+
+    protected function showUsage(?NonEmptyList $errors = null): IO
+    {
+        return new IO(function () use ($errors) {
+            if ($errors) {
+                $errorMessages = $errors->map(fn (Error $e) => $e->message)->mkString(", ");
+                fwrite(STDERR, "Error: " . $errorMessages . "\n\n");
+            }
+
+            echo "Usage: application [options]\n\n";
+
+            $this->define()->map(function (Options $options) {
+                echo $options->describe();
+            });
+
+            return 1;
+        });
+    }
 }
