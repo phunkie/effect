@@ -198,6 +198,23 @@ IOApp automatically provides:
 - `-h, --help`: Display usage information
 - `-v, --version`: Display application version
 
+**Important:** While these options are automatically added to your option definitions, you must explicitly check for them in your `run()` method using `$options->has('help')` and `$options->has('version')`. They are not handled automatically - this gives you full control over when and how to display help or version information.
+
+```php
+public function run(?array $args = []): IO
+{
+    return $this->parse($args)->fold(
+        fn($errors) => $this->showUsage($errors)
+    )(
+        fn($options) => match(true) {
+            $options->has('help') => $this->showUsage(),
+            $options->has('version') => $this->showVersion(),
+            default => $this->runApp($options)
+        }
+    );
+}
+```
+
 ## Running with IO Console
 
 Phunkie Effects provides a console application to run your IO apps in multiple ways:
