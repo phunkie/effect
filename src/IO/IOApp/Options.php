@@ -2,6 +2,13 @@
 
 namespace Phunkie\Effect\IO\IOApp;
 
+use function Failure;
+use function Nel;
+
+use Phunkie\Validation\Validation;
+
+use function Success;
+
 class Options
 {
     private $definitions = [];
@@ -14,16 +21,22 @@ class Options
     public static function create(OptionDefinition ...$definitions): self
     {
         $hasHelp = false;
+        $hasVersion = false;
         foreach ($definitions as $def) {
             if ($def->short === 'h' || $def->long === 'help') {
                 $hasHelp = true;
-
-                break;
+            }
+            if ($def->short === 'v' || $def->long === 'version') {
+                $hasVersion = true;
             }
         }
 
         if (! $hasHelp) {
             $definitions[] = new OptionDefinition('h', 'help', 'Display this help message', OptionFormat::NoInput);
+        }
+
+        if (! $hasVersion) {
+            $definitions[] = new OptionDefinition('v', 'version', 'Display version', OptionFormat::NoInput);
         }
 
         return new self($definitions);
@@ -56,40 +69,57 @@ class Options
         return $output;
     }
 
-    public function parse(array $args): ParsedOptions
+    public function parse(array $args): Validation
     {
         if (isset($args[0]) && ! str_starts_with($args[0], '-')) {
             array_shift($args);
         }
 
         $parsed = [];
-        $i = 0;
+        $errors = [];
+        $positionalArgs = [];
         $count = count($args);
 
         for ($i = 0; $i < $count; $i++) {
             $arg = $args[$i];
 
             if ($arg === '--') {
+                for ($j = $i + 1; $j < $count; $j++) {
+                    $positionalArgs[] = $args[$j];
+                }
+
                 break;
             }
 
             if (str_starts_with($arg, '--')) {
-                $this->parseLongOption($arg, $args, $i, $parsed);
+                $err = $this->parseLongOption($arg, $args, $i, $parsed);
+                if ($err) {
+                    $errors[] = $err;
+                }
 
                 continue;
             }
 
             if (str_starts_with($arg, '-') && strlen($arg) > 1) {
-                $this->parseShortOptions($arg, $args, $i, $parsed);
+                $errs = $this->parseShortOptions($arg, $args, $i, $parsed);
+                if ($errs) {
+                    $errors = array_merge($errors, $errs);
+                }
 
                 continue;
             }
+
+            $positionalArgs[] = $arg;
         }
 
-        return new ParsedOptions($parsed);
+        if (count($errors) > 0) {
+            return Failure(Nel(...$errors));
+        }
+
+        return Success(new ParsedOptions($parsed, $positionalArgs));
     }
 
-    private function parseLongOption(string $arg, array &$args, int &$i, array &$parsed): void
+    private function parseLongOption(string $arg, array &$args, int &$i, array &$parsed): ?Error
     {
         $name = substr($arg, 2);
         $value = null;
@@ -100,17 +130,20 @@ class Options
 
         $def = $this->findDefByLong($name);
         if (! $def) {
-            return;
+            return new Error("Unknown option: --$name");
         }
 
         $key = $def->long ?? $def->short;
         $parsed[$key] = $this->resolveValue($def, $value, $args, $i, $name);
+
+        return null;
     }
 
-    private function parseShortOptions(string $arg, array &$args, int &$i, array &$parsed): void
+    private function parseShortOptions(string $arg, array &$args, int &$i, array &$parsed): array
     {
         $chars = str_split(substr($arg, 1));
         $len = count($chars);
+        $errors = [];
 
         // Standard bundled short options parsing logic
         for ($j = 0; $j < $len; $j++) {
@@ -118,6 +151,8 @@ class Options
             $def = $this->findDefByShort($char);
 
             if (! $def) {
+                $errors[] = new Error("Unknown option: -$char");
+
                 continue;
             }
 
@@ -140,6 +175,8 @@ class Options
                 $parsed[$key] = $this->resolveValue($def, null, $args, $i, $char);
             }
         }
+
+        return $errors;
     }
 
     private function resolveValue(OptionDefinition $def, ?string $explicitValue, array &$args, int &$i, string $name): mixed
@@ -205,8 +242,15 @@ class Options
 
     public function hasOption(string $query, array $args): bool
     {
-        $parsed = $this->parse($args);
+        return $this->parse($args)->fold(
+            fn ($errors) => false
+        )(
+            fn ($parsed) => $this->checkOption($query, $parsed)
+        );
+    }
 
+    private function checkOption(string $query, ParsedOptions $parsed): bool
+    {
         foreach ($this->definitions as $d) {
             if ($d->short === $query || $d->long === $query) {
                 // Determine the key used in parsed

@@ -37,7 +37,7 @@ class OptionsTest extends TestCase
             option('d', 'debug', 'Debug', NoInput)
         )->toOption()->get();
 
-        $parsed = $options->parse(['-v', '-d']);
+        $parsed = $options->parse(['-v', '-d'])->getOrElse(null);
 
         $this->assertTrue($parsed->has('verbose'));
         $this->assertTrue($parsed->has('debug'));
@@ -50,7 +50,7 @@ class OptionsTest extends TestCase
             option('l', 'long', '', NoInput)
         )->toOption()->get();
 
-        $parsed = $options->parse(['-al']);
+        $parsed = $options->parse(['-al'])->getOrElse(null);
 
         $this->assertTrue($parsed->has('all'));
         $this->assertTrue($parsed->has('long'));
@@ -62,7 +62,7 @@ class OptionsTest extends TestCase
             option('f', 'file', 'File', Required)
         )->toOption()->get();
 
-        $parsed = $options->parse(['-f', 'test.txt']);
+        $parsed = $options->parse(['-f', 'test.txt'])->getOrElse(null);
 
         $this->assertTrue($parsed->has('file'));
         $this->assertEquals('test.txt', $parsed->fetch('file')->get()->value);
@@ -74,7 +74,7 @@ class OptionsTest extends TestCase
             option('p', 'port', 'Port', Required)
         )->toOption()->get();
 
-        $parsed = $options->parse(['-p8080']);
+        $parsed = $options->parse(['-p8080'])->getOrElse(null);
 
         $this->assertEquals('8080', $parsed->fetch('port')->get()->value);
     }
@@ -85,7 +85,7 @@ class OptionsTest extends TestCase
             option('n', 'name', 'Name', Required)
         )->toOption()->get();
 
-        $parsed = $options->parse(['--name=John']);
+        $parsed = $options->parse(['--name=John'])->getOrElse(null);
 
         $this->assertEquals('John', $parsed->fetch('name')->get()->value);
     }
@@ -96,13 +96,10 @@ class OptionsTest extends TestCase
             option('c', 'color', 'Enable color', Negatable)
         )->toOption()->get();
 
-        // Default absence check - actually fetch returns failure if not present, but parsed has() should be false
-        // Wait, if it's negatable, usually presence implies true/false?
-
-        $parsedEnable = $options->parse(['--color']);
+        $parsedEnable = $options->parse(['--color'])->getOrElse(null);
         $this->assertEquals(true, $parsedEnable->fetch('color')->get()->value);
 
-        $parsedDisable = $options->parse(['--no-color']);
+        $parsedDisable = $options->parse(['--no-color'])->getOrElse(null);
         $this->assertEquals(false, $parsedDisable->fetch('color')->get()->value);
     }
 
@@ -115,11 +112,11 @@ class OptionsTest extends TestCase
         )->toOption()->get();
 
         // Test verify logic
-        $parsed = $options->parse(['--no-verify']);
+        $parsed = $options->parse(['--no-verify'])->getOrElse(null);
         $this->assertEquals(false, $parsed->fetch('verify')->get()->value);
 
         // Test silent logic (Optional default)
-        $parsedSilent = $options->parse(['--silent']);
+        $parsedSilent = $options->parse(['--silent'])->getOrElse(null);
         $this->assertEquals(true, $parsedSilent->fetch('silent')->get()->value);
     }
 }
