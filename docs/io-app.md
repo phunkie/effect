@@ -232,31 +232,6 @@ class MyApp extends IOApp
 }
 ```
 
-### Explicit Instantiation (Optional)
-
-If you prefer, you can explicitly return an instance of your IOApp:
-
-```php
-<?php
-// MyApp.php
-require 'vendor/autoload.php';
-
-use Phunkie\Effect\IO\IOApp;
-use Phunkie\Effect\IO\IO;
-use function Phunkie\Effect\Functions\console\printLn;
-
-class MyApp extends IOApp
-{
-    public function run(?array $args = []): IO
-    {
-        return printLn("Hello, Effects!")
-            ->map(fn() => 0);
-    }
-}
-
-return new MyApp(); // Explicit return is optional but supported
-```
-
 ### Running Plain IO
 
 You can also run a file that returns a plain `IO` value:
