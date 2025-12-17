@@ -204,14 +204,14 @@ Phunkie Effects provides a console application to run your IO apps in multiple w
 
 ### Running IOApp Classes
 
-You can run an IOApp by passing a file that returns an instance:
+You can run an IOApp by passing a file that defines the class:
 
 ```bash
 $ bin/phunkie MyApp.php
 Hello, Effects!
 ```
 
-The file should return an IOApp instance:
+Simply define your IOApp class in the file - no need to explicitly return an instance:
 
 ```php
 <?php
@@ -230,13 +230,11 @@ class MyApp extends IOApp
             ->map(fn() => 0);
     }
 }
-
-return new MyApp();
 ```
 
-### Implicit IOApp Instantiation
+### Explicit Instantiation (Optional)
 
-You can also define an IOApp class without explicitly returning an instance. The console will automatically detect and instantiate it:
+If you prefer, you can explicitly return an instance of your IOApp:
 
 ```php
 <?php
@@ -256,7 +254,7 @@ class MyApp extends IOApp
     }
 }
 
-// No need to return new MyApp() - it's detected automatically!
+return new MyApp(); // Explicit return is optional but supported
 ```
 
 ### Running Plain IO
