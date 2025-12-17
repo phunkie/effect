@@ -308,29 +308,51 @@ The console will:
 
 ## Exit Codes and Error Handling
 
-IOApp provides a way to handle errors and return appropriate exit codes:
+IOApp provides built-in error handling through the `parse()` method and `showUsage()`:
 
 ```php
 use Phunkie\Effect\IO\IOApp;
-use function Phunkie\Effect\Functions\io\io;
+use Phunkie\Effect\IO\IO;
+use Phunkie\Validation\Validation;
+use function Phunkie\Effect\Functions\ioapp\arguments;
+use function Phunkie\Effect\Functions\ioapp\option;
 use function Phunkie\Effect\Functions\console\printError;
-use const Phunkie\Effect\IOApp\ExitSuccess;
-use const Phunkie\Effect\IOApp\ExitFailure;
+use function Phunkie\Effect\Functions\console\printSuccess;
+use const Phunkie\Effect\Functions\ioapp\Required;
 
 class MyApp extends IOApp
 {
-    /**
-     * @return IO<int>
-     */
-    public function run(): IO
+    protected function define(): Validation
     {
-        return io(function() {
+        return arguments(
+            option('f', 'file', 'Input file', Required)
+        );
+    }
+
+    public function run(?array $args = []): IO
+    {
+        return $this->parse($args)->fold(
+            fn($errors) => $this->showUsage($errors)
+        )(
+            fn($options) => $this->processFile($options)
+        );
+    }
+
+    private function processFile($options): IO
+    {
+        return new IO(function() use ($options) {
+            $file = $options->fetch('file')
+                ->getOrElse('default.txt');
+            
             try {
-                // Your application logic here
-                return ExitSuccess;
+                // Process file
+                return printSuccess("File processed: $file")
+                    ->map(fn() => 0)
+                    ->unsafeRun();
             } catch (\Exception $e) {
                 return printError($e->getMessage())
-                    ->map(fn() => ExitFailure);
+                    ->map(fn() => 1)
+                    ->unsafeRun();
             }
         });
     }
@@ -339,91 +361,131 @@ class MyApp extends IOApp
 
 ## Best Practices
 
-1. **Keep it Pure**: The `run` method should return an IO without side effects. All side effects should be wrapped in IO.
+1. **Use the Argument DSL**: Define your CLI interface with `define()` and let IOApp handle parsing and validation.
 
-2. **Error Handling**: Use proper error handling and return meaningful exit codes.
+2. **Leverage Validation**: Use `parse()->fold()` to handle both success and error cases elegantly.
 
-3. **Resource Management**: Use bracket or resource patterns to manage resources properly.
+3. **Keep it Pure**: The `run` method should return an IO without side effects. All side effects should be wrapped in IO.
 
 4. **Composition**: Break down your application into smaller, composable IOs.
 
-Example of a well-structured IOApp:
+Example of a well-structured IOApp with argument parsing:
 
 ```php
 use Phunkie\Effect\IO\IOApp;
-use function Phunkie\Effect\Functions\io\io;
-use function Phunkie\Effect\Functions\console\printLn;
-use function Phunkie\Effect\Functions\console\printError;
-use function Phunkie\Effect\Functions\console\printSuccess;
-use const Phunkie\Effect\IOApp\ExitSuccess;
-use const Phunkie\Effect\IOApp\ExitFailure;
+use Phunkie\Effect\IO\IO;
+use Phunkie\Validation\Validation;
+use function Phunkie\Effect\Functions\ioapp\arguments;
+use function Phunkie\Effect\Functions\ioapp\option;
+use function Phunkie\Effect\Functions\console\{printLn, printError, printSuccess};
+use const Phunkie\Effect\Functions\ioapp\{Required, Optional, NoInput};
 
-class MyApp extends IOApp
+class DatabaseApp extends IOApp
 {
-    /**
-     * @return IO<int>
-     */
-    public function run(): IO
+    public function __construct()
     {
-        return io(function() {
-            try {
-                $config = $this->loadConfig();
-                $db = $this->connectToDatabase($config);
-                
-                return $this->runApplication($db)
-                    ->flatMap(function($result) use ($db) {
-                        return printSuccess("Operation completed")
-                            ->map(function() use ($db) {
-                                $this->cleanup($db);
-                                return ExitSuccess;
-                            });
-                    })
-                    ->handleError(function($error) {
-                        return printError($error->getMessage())
-                            ->map(fn() => ExitFailure);
-                    })
-                    ->unsafeRun();
-            } catch (\Exception $e) {
-                return printError("Fatal error: " . $e->getMessage())
-                    ->map(fn() => ExitFailure);
-            }
-        });
+        parent::__construct("1.0.0");
     }
 
-    private function loadConfig(): IO
+    protected function define(): Validation
     {
-        return io(function() {
-            // Load configuration
-            return ['host' => 'localhost', 'port' => 5432];
+        return arguments(
+            option('h', 'host', 'Database host', Optional),
+            option('p', 'port', 'Database port', Optional),
+            option('d', 'database', 'Database name', Required),
+            option('v', 'verbose', 'Verbose output', NoInput)
+        );
+    }
+
+    public function run(?array $args = []): IO
+    {
+        return $this->parse($args)->fold(
+            fn($errors) => $this->showUsage($errors)
+        )(
+            fn($options) => match(true) {
+                $options->has('help') => $this->showUsage(),
+                $options->has('version') => $this->showVersion(),
+                default => $this->runApp($options)
+            }
+        );
+    }
+
+    private function runApp($options): IO
+    {
+        return $this->loadConfig($options)
+            ->flatMap(fn($config) => $this->connectToDatabase($config))
+            ->flatMap(fn($db) => $this->runQueries($db, $options))
+            ->flatMap(fn($result) => printSuccess("Operation completed"))
+            ->map(fn() => 0)
+            ->handleError(function($error) {
+                return printError("Error: " . $error->getMessage())
+                    ->map(fn() => 1);
+            });
+    }
+
+    private function loadConfig($options): IO
+    {
+        return new IO(function() use ($options) {
+            return [
+                'host' => $options->fetch('host')->getOrElse('localhost'),
+                'port' => $options->fetch('port')->getOrElse('5432'),
+                'database' => $options->fetch('database')->get()->value,
+                'verbose' => $options->has('verbose')
+            ];
         });
     }
 
     private function connectToDatabase(array $config): IO
     {
-        return io(function() use ($config) {
-            // Connect to database
+        return new IO(function() use ($config) {
+            if ($config['verbose']) {
+                printLn("Connecting to {$config['host']}:{$config['port']}")
+                    ->unsafeRun();
+            }
+            // Simulate database connection
             return new Database($config);
         });
     }
 
-    private function runApplication(Database $db): IO
+    private function runQueries(Database $db, $options): IO
     {
-        return io(function() use ($db) {
-            // Run application logic
-            return $db->query("SELECT * FROM users");
+        return new IO(function() use ($db, $options) {
+            $verbose = $options->has('verbose');
+            
+            if ($verbose) {
+                printLn("Running queries...")->unsafeRun();
+            }
+            
+            $result = $db->query("SELECT * FROM users");
+            
+            if ($verbose) {
+                printLn("Found " . count($result) . " users")->unsafeRun();
+            }
+            
+            return $result;
         });
     }
+}
 
-    private function cleanup(Database $db): void
+class Database
+{
+    public function __construct(private array $config) {}
+    
+    public function query(string $sql): array
     {
-        $db->close();
+        // Simulate query
+        return [['id' => 1, 'name' => 'John']];
     }
 }
 ```
 
-This example shows:
-- Proper error handling with console functions
-- Resource management
-- Composition of IOs
+This example demonstrates:
+- Version support via constructor
+- Comprehensive argument parsing with multiple option types
+- Proper use of `parse()->fold()` for error handling
+- Match expression for handling help/version flags
+- Composition of IOs with `flatMap`
+- Accessing parsed options with `fetch()` and `has()`
+- Verbose mode controlled by command-line flag
 - Clean separation of concerns
-- Meaningful exit codes 
+- Error handling with `handleError()` 
