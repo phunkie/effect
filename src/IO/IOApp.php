@@ -74,19 +74,26 @@ abstract class IOApp
     }
 
     /**
-     * Parses the CLI arguments based on the definitions from define().
+     * Parses CLI arguments and handles errors, help, and version flags automatically.
+     *
+     * This method will exit the process if:
+     * - There are parsing errors (shows usage and exits with code 1)
+     * - --help/-h flag is present (shows usage and exits with code 1)
+     * - --version/-v flag is present (shows version and exits with code 0)
+     *
+     * Otherwise, returns an IO containing the parsed options.
      *
      * Example:
      * ```php
-     * $result = $this->parse($argv);
-     * $result->fold(
-     *     fn($errors) => echo "Invalid arguments", // $errors is NonEmptyList<Error>
-     *     fn($options) => $options->has('verbose') // $options is ParsedOptions
-     * );
+     * public function run(?array $args = []): IO
+     * {
+     *     return $this->parse($args)
+     *         ->flatMap(fn($options) => $this->runApp($options));
+     * }
      * ```
      *
      * @param array $args The raw arguments (usually $argv)
-     * @return IO<ParsedOptions> IO that resolves to parsed options, handling errors/help/version internally
+     * @return IO<ParsedOptions> IO that resolves to parsed options
      */
     protected function parse(array $args): IO
     {
