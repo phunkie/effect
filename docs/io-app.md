@@ -140,7 +140,8 @@ class MyApp extends IOApp
 
     public function run(?array $args = []): IO
     {
-        return $this->parse($args)->flatMap(fn($options) => $this->processOptions($options));
+        return $this->parse($args)
+            ->flatMap(fn($options) => $this->processOptions($options));
     }
 
     private function processOptions($options): IO
@@ -154,7 +155,9 @@ class MyApp extends IOApp
             $positionalArgs = $options->args;
             
             // Your application logic here
-            return 0;
+            // ...
+
+            return ExitSuccess;
         });
     }
 }
@@ -197,6 +200,8 @@ IOApp automatically provides and handles:
 These flags are automatically handled by `parse()`, which will display the appropriate information and exit the process. Your `run()` method only receives control if the user provides valid arguments without help/version flags:
 
 ```php
+use const Phunkie\Effect\IOApp\ExitSuccess;
+
 public function run(?array $args = []): IO
 {
     return $this->parse($args)
@@ -209,7 +214,7 @@ private function runApp($options): IO
     return new IO(function() use ($options) {
         $verbose = $options->has('verbose');
         // ... your code
-        return 0;
+        return ExitSuccess;
     });
 }
 ```
@@ -262,62 +267,112 @@ The console will:
 
 ## Exit Codes and Error Handling
 
-IOApp provides built-in error handling through the `parse()` method and `showUsage()`:
+### Exit Codes
+
+IOApp provides standard exit code constants for common scenarios:
+
+```php
+use const Phunkie\Effect\IOApp\ExitSuccess;     // 0
+use const Phunkie\Effect\IOApp\ExitFailure;     // 1
+use const Phunkie\Effect\IOApp\ExitMisuse;      // 2
+use const Phunkie\Effect\IOApp\ExitCannotExec;  // 126
+use const Phunkie\Effect\IOApp\ExitNotFound;    // 127
+use const Phunkie\Effect\IOApp\ExitInvalid;     // 128
+use const Phunkie\Effect\IOApp\ExitInterrupted; // 130
+```
+
+Your `run()` method should return an `IO<int>` where the integer is the exit code:
+
+```php
+public function run(?array $args = []): IO
+{
+    return $this->parse($args)
+        ->flatMap(fn($options) => $this->processFile($options))
+        ->map(fn() => ExitSuccess);  // Return 0 on success
+}
+```
+
+### Error Handling with handleError
+
+Use `handleError()` to catch exceptions and return appropriate exit codes:
 
 ```php
 use Phunkie\Effect\IO\IOApp;
 use Phunkie\Effect\IO\IO;
-use Phunkie\Validation\Validation;
-use function Phunkie\Effect\Functions\ioapp\arguments;
-use function Phunkie\Effect\Functions\ioapp\option;
-use function Phunkie\Effect\Functions\console\printError;
-use function Phunkie\Effect\Functions\console\printSuccess;
-use const Phunkie\Effect\Functions\ioapp\Required;
+use function Phunkie\Effect\Functions\console\{printLn, printError};
+use const Phunkie\Effect\IOApp\{ExitSuccess, ExitFailure};
 
-class MyApp extends IOApp
+class FileProcessor extends IOApp
 {
-    protected function define(): Validation
-    {
-        return arguments(
-            option('f', 'file', 'Input file', Required)
-        );
-    }
-
     public function run(?array $args = []): IO
     {
-        return $this->parse($args)->fold(
-            fn($errors) => $this->showUsage($errors)
-        )(
-            fn($options) => $this->processFile($options)
-        );
+        return $this->parse($args)
+            ->flatMap(fn($options) => $this->processFile($options))
+            ->handleError(function($error) {
+                return printError("Error: " . $error->getMessage())
+                    ->map(fn() => ExitFailure);
+            });
     }
 
     private function processFile($options): IO
     {
         return new IO(function() use ($options) {
-            $file = $options->fetch('file')
-                ->getOrElse('default.txt');
+            $file = $options->fetch('file')->get()->value;
             
-            try {
-                // Process file
-                return printSuccess("File processed: $file")
-                    ->map(fn() => 0)
-                    ->unsafeRun();
-            } catch (\Exception $e) {
-                return printError($e->getMessage())
-                    ->map(fn() => 1)
-                    ->unsafeRun();
+            if (!file_exists($file)) {
+                throw new \RuntimeException("File not found: $file");
             }
+            
+            // Process file...
+            printLn("Processed: $file")->unsafeRun();
+            
+            return ExitSuccess;
         });
     }
 }
 ```
 
+### Try-Catch Within IO
+
+For more granular error handling, use try-catch inside your IO:
+
+```php
+private function processFile($options): IO
+{
+    return new IO(function() use ($options) {
+        try {
+            $file = $options->fetch('file')->get()->value;
+            
+            // Risky operation
+            $content = file_get_contents($file);
+            if ($content === false) {
+                throw new \RuntimeException("Failed to read file");
+            }
+            
+            // Process content...
+            printSuccess("File processed successfully")->unsafeRun();
+            return ExitSuccess;
+            
+        } catch (\RuntimeException $e) {
+            printError($e->getMessage())->unsafeRun();
+            return ExitFailure;
+        } catch (\Exception $e) {
+            printError("Unexpected error: " . $e->getMessage())->unsafeRun();
+            return ExitInvalid;
+        }
+    });
+}
+```
+
+### Validation Errors
+
+Argument parsing errors are handled automatically by `parse()` - it will show usage and exit with code 1. You don't need to handle these yourself.
+
 ## Best Practices
 
 1. **Use the Argument DSL**: Define your CLI interface with `define()` and let IOApp handle parsing and validation.
 
-2. **Leverage Validation**: Use `parse()->fold()` to handle both success and error cases elegantly.
+2. **Automatic Error Handling**: The `parse()` method automatically handles errors, help, and version flags - you just focus on your application logic.
 
 3. **Keep it Pure**: The `run` method should return an IO without side effects. All side effects should be wrapped in IO.
 
