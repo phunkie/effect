@@ -232,31 +232,9 @@ class MyApp extends IOApp
 }
 ```
 
-### Passing Arguments
-
-Arguments are passed to the IOApp's `run` method:
-
-```php
-class MyApp extends IOApp
-{
-    public function run(?array $args = []): IO
-    {
-        return new IO(function() use ($args) {
-            echo "Arguments: " . implode(", ", $args) . "\n";
-            return 0;
-        });
-    }
-}
-```
-
-```bash
-$ bin/phunkie MyApp.php arg1 arg2 arg3
-Arguments: MyApp.php, arg1, arg2, arg3
-```
-
 The console will:
-1. Load your application class or IO
-2. Execute the `run` method (for IOApp) or the IO directly
+1. Load your application class
+2. Execute the `run` method
 3. Handle any errors that occur during execution
 4. Return the appropriate exit code
 
