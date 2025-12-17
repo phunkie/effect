@@ -40,7 +40,6 @@
         "cs-fix": "php-cs-fixer fix",
         "cs-check": "php-cs-fixer fix --dry-run --diff"
     },
-    "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
         "bin-dir": "bin"
