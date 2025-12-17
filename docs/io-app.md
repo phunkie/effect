@@ -232,27 +232,6 @@ class MyApp extends IOApp
 }
 ```
 
-### Running Plain IO
-
-You can also run a file that returns a plain `IO` value:
-
-```php
-<?php
-// hello.php
-require 'vendor/autoload.php';
-
-use Phunkie\Effect\IO\IO;
-use function Phunkie\Effect\Functions\console\printLn;
-
-return printLn("Hello from IO!")
-    ->map(fn() => 0);
-```
-
-```bash
-$ bin/phunkie hello.php
-Hello from IO!
-```
-
 ### Passing Arguments
 
 Arguments are passed to the IOApp's `run` method:
