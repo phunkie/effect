@@ -326,6 +326,7 @@ class DatabaseApp extends IOApp
             option('p', 'port', 'Database port', Optional),
             option('d', 'database', 'Database name', Required),
             option('v', 'verbose', 'Verbose output', NoInput)
+            // Note: This overrides -v for verbose, but --version is still available
         );
     }
 
@@ -418,6 +419,6 @@ This example demonstrates:
 - Match expression for handling help/version flags
 - Composition of IOs with `flatMap`
 - Accessing parsed options with `fetch()` and `has()`
-- Verbose mode controlled by command-line flag
+- Verbose mode controlled by command-line flag (overrides `-v` but `--version` remains)
 - Clean separation of concerns
 - Error handling with `handleError()` 
