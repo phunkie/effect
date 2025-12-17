@@ -194,44 +194,35 @@ $files = $options->args; // Array of non-option arguments
 
 ### Built-in Options
 
-IOApp automatically provides:
-- `-h, --help`: Display usage information
-- `-v, --version`: Display application version
+IOApp automatically provides and handles:
+- `-h, --help`: Display usage information and exit
+- `-v, --version`: Display application version and exit
 
-These flags are automatically handled when you use `parseAndHandle()`:
+These flags are automatically handled by `parse()`, which will display the appropriate information and exit the process. Your `run()` method only receives control if the user provides valid arguments without help/version flags:
 
 ```php
 public function run(?array $args = []): IO
 {
-    return $this->parseAndHandle($args, fn($options) => $this->runApp($options));
+    return $this->parse($args)
+        ->flatMap(fn($options) => $this->runApp($options));
 }
 
 private function runApp($options): IO
 {
-    // Your application logic here
+    // Your application logic here - only called with valid options
     return new IO(function() use ($options) {
-        // Access options and run your program
+        $verbose = $options->has('verbose');
+        // ... your code
         return 0;
     });
 }
 ```
 
-If you need more control, you can use `parse()` directly and handle the flags yourself:
-
-```php
-public function run(?array $args = []): IO
-{
-    return $this->parse($args)->fold(
-        fn($errors) => $this->showUsage($errors)
-    )(
-        fn($options) => match(true) {
-            $options->has('help') => $this->showUsage(),
-            $options->has('version') => $this->showVersion(),
-            default => $this->runApp($options)
-        }
-    );
-}
-```
+The `parse()` method handles all error cases internally:
+- Invalid arguments → shows usage and exits with code 1
+- `--help` or `-h` → shows usage and exits with code 1  
+- `--version` or `-v` → shows version and exits with code 0
+- Valid arguments → returns `IO<ParsedOptions>` for your application to process
 
 ## Running with IO Console
 
@@ -367,7 +358,7 @@ class DatabaseApp extends IOApp
 
     public function run(?array $args = []): IO
     {
-        return $this->parseAndHandle($args, fn($options) => $this->runApp($options));
+        return $this->parse($args)->flatMap(fn($options) => $this->runApp($options));
     }
 
     private function runApp($options): IO
@@ -442,7 +433,8 @@ class Database
 This example demonstrates:
 - Version support via constructor
 - Comprehensive argument parsing with multiple option types
-- Automatic help/version handling with `parseAndHandle()`
+- Automatic error/help/version handling by `parse()`
+- Simple `parse()->flatMap()` pattern for application logic
 - Composition of IOs with `flatMap`
 - Accessing parsed options with `fetch()` and `has()`
 - Verbose mode controlled by command-line flag (overrides `-v` but `--version` remains)

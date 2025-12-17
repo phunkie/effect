@@ -86,36 +86,40 @@ abstract class IOApp
      * ```
      *
      * @param array $args The raw arguments (usually $argv)
-     * @return Validation<NonEmptyList<Error>, ParsedOptions>
+     * @return IO<ParsedOptions> IO that resolves to parsed options, handling errors/help/version internally
      */
-    protected function parse(array $args): Validation
+    protected function parse(array $args): IO
     {
-        return $this->define()
-            ->flatMap(fn ($options) => $options->parse($args));
+        return new IO(function () use ($args) {
+            $validation = $this->define()
+                ->flatMap(fn ($options) => $options->parse($args));
+
+            $validation->fold(
+                fn ($errors) => exit($this->showUsage($errors)->unsafeRun())
+            )(
+                fn ($options) => match(true) {
+                    $options->has('help') => exit($this->showUsage()->unsafeRun()),
+                    $options->has('version') => exit($this->showVersion()->unsafeRun()),
+                    default => null
+                }
+            );
+
+            // If we reach here, validation was Success and no help/version flags
+            return $validation->toOption()->get();
+        });
     }
 
     /**
-     * Parses CLI arguments and automatically handles help and version flags.
-     *
-     * This is a convenience method that wraps parse() and automatically checks
-     * for --help/-h and --version/-v flags, calling showUsage() or showVersion()
-     * respectively. If neither flag is present, it calls the provided callback.
+     * Low-level parse that returns Validation for advanced use cases.
+     * Most users should use parse() instead.
      *
      * @param array $args The raw arguments (usually $argv)
-     * @param callable(ParsedOptions):IO $onSuccess Callback to execute with parsed options
-     * @return IO<int>
+     * @return Validation<NonEmptyList<Error>, ParsedOptions>
      */
-    protected function parseAndHandle(array $args, callable $onSuccess): IO
+    protected function parseValidation(array $args): Validation
     {
-        return $this->parse($args)->fold(
-            fn ($errors) => $this->showUsage($errors)
-        )(
-            fn ($options) => match(true) {
-                $options->has('help') => $this->showUsage(),
-                $options->has('version') => $this->showVersion(),
-                default => $onSuccess($options)
-            }
-        );
+        return $this->define()
+            ->flatMap(fn ($options) => $options->parse($args));
     }
 
     protected function showErrors(?NonEmptyList $errors = null): IO
