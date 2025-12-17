@@ -198,7 +198,25 @@ IOApp automatically provides:
 - `-h, --help`: Display usage information
 - `-v, --version`: Display application version
 
-**Important:** While these options are automatically added to your option definitions, you must explicitly check for them in your `run()` method using `$options->has('help')` and `$options->has('version')`. They are not handled automatically - this gives you full control over when and how to display help or version information.
+These flags are automatically handled when you use `parseAndHandle()`:
+
+```php
+public function run(?array $args = []): IO
+{
+    return $this->parseAndHandle($args, fn($options) => $this->runApp($options));
+}
+
+private function runApp($options): IO
+{
+    // Your application logic here
+    return new IO(function() use ($options) {
+        // Access options and run your program
+        return 0;
+    });
+}
+```
+
+If you need more control, you can use `parse()` directly and handle the flags yourself:
 
 ```php
 public function run(?array $args = []): IO
@@ -349,15 +367,7 @@ class DatabaseApp extends IOApp
 
     public function run(?array $args = []): IO
     {
-        return $this->parse($args)->fold(
-            fn($errors) => $this->showUsage($errors)
-        )(
-            fn($options) => match(true) {
-                $options->has('help') => $this->showUsage(),
-                $options->has('version') => $this->showVersion(),
-                default => $this->runApp($options)
-            }
-        );
+        return $this->parseAndHandle($args, fn($options) => $this->runApp($options));
     }
 
     private function runApp($options): IO
@@ -432,8 +442,7 @@ class Database
 This example demonstrates:
 - Version support via constructor
 - Comprehensive argument parsing with multiple option types
-- Proper use of `parse()->fold()` for error handling
-- Match expression for handling help/version flags
+- Automatic help/version handling with `parseAndHandle()`
 - Composition of IOs with `flatMap`
 - Accessing parsed options with `fetch()` and `has()`
 - Verbose mode controlled by command-line flag (overrides `-v` but `--version` remains)

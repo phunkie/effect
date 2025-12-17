@@ -94,6 +94,30 @@ abstract class IOApp
             ->flatMap(fn ($options) => $options->parse($args));
     }
 
+    /**
+     * Parses CLI arguments and automatically handles help and version flags.
+     *
+     * This is a convenience method that wraps parse() and automatically checks
+     * for --help/-h and --version/-v flags, calling showUsage() or showVersion()
+     * respectively. If neither flag is present, it calls the provided callback.
+     *
+     * @param array $args The raw arguments (usually $argv)
+     * @param callable(ParsedOptions):IO $onSuccess Callback to execute with parsed options
+     * @return IO<int>
+     */
+    protected function parseAndHandle(array $args, callable $onSuccess): IO
+    {
+        return $this->parse($args)->fold(
+            fn ($errors) => $this->showUsage($errors)
+        )(
+            fn ($options) => match(true) {
+                $options->has('help') => $this->showUsage(),
+                $options->has('version') => $this->showVersion(),
+                default => $onSuccess($options)
+            }
+        );
+    }
+
     protected function showErrors(?NonEmptyList $errors = null): IO
     {
         return new IO(function () use ($errors) {
