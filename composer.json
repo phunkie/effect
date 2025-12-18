@@ -12,7 +12,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "../phunkie"
+            "url": "https://github.com/phunkie/phunkie.git"
         }
     ],
     "require": {
