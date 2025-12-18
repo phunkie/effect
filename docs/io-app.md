@@ -66,16 +66,21 @@ To create an IO application, extend the `IOApp` class and implement the `run` me
 
 ```php
 use Phunkie\Effect\IO\IOApp;
-use function Phunkie\Effect\Functions\io\io;
+use Phunkie\Effect\IO\IO;
 use function Phunkie\Effect\Functions\console\printLn;
 use const Phunkie\Effect\IOApp\ExitSuccess;
 
 class MyApp extends IOApp
 {
+    public function __construct()
+    {
+        parent::__construct("1.0.0"); // Optional version string
+    }
+
     /**
      * @return IO<int>
      */
-    public function run(): IO
+    public function run(?array $args = []): IO
     {
         return printLn("Hello, Effects!")
             ->map(fn() => ExitSuccess);
@@ -85,13 +90,173 @@ class MyApp extends IOApp
 
 The `run` method must return an `IO` that will be executed when the application starts. The return value of the IO will be used as the application's exit code.
 
+### Version Support
+
+IOApp automatically provides `--version` and `-v` flags. You can specify your application version in the constructor:
+
+```php
+class MyApp extends IOApp
+{
+    public function __construct()
+    {
+        parent::__construct("2.1.0");
+    }
+    
+    // ... rest of implementation
+}
+```
+
+Running with the version flag:
+```bash
+$ bin/phunkie MyApp.php --version
+2.1.0
+```
+
+## Command-Line Argument Parsing
+
+IOApp provides a powerful DSL for defining and parsing command-line arguments:
+
+```php
+use Phunkie\Effect\IO\IOApp;
+use Phunkie\Effect\IO\IO;
+use function Phunkie\Effect\Functions\ioapp\arguments;
+use function Phunkie\Effect\Functions\ioapp\option;
+use const Phunkie\Effect\Functions\ioapp\Required;
+use const Phunkie\Effect\Functions\ioapp\Optional;
+use const Phunkie\Effect\Functions\ioapp\NoInput;
+use const Phunkie\Effect\Functions\ioapp\Negatable;
+
+class MyApp extends IOApp
+{
+    protected function define(): Validation
+    {
+        return arguments(
+            option('f', 'file', 'Input file path', Required),
+            option('o', 'output', 'Output file path', Optional),
+            option('v', 'verbose', 'Enable verbose output', NoInput),
+            option('c', 'color', 'Enable colored output', Negatable)
+        );
+    }
+
+    public function run(?array $args = []): IO
+    {
+        return $this->parse($args)
+            ->flatMap(fn($options) => $this->processOptions($options));
+    }
+
+    private function processOptions($options): IO
+    {
+        return new IO(function() use ($options) {
+            // Access parsed options
+            $file = $options->fetch('file')->getOrElse('default.txt');
+            $verbose = $options->has('verbose');
+            
+            // Access positional arguments
+            $positionalArgs = $options->args;
+            
+            // Your application logic here
+            // ...
+
+            return ExitSuccess;
+        });
+    }
+}
+```
+
+### Option Formats
+
+- **Required**: Option must have a value (`-f file.txt` or `--file=file.txt`)
+- **Optional**: Option may have a value, defaults to `true` if present without value
+- **NoInput**: Flag option, no value expected (`-v` or `--verbose`)
+- **Negatable**: Can be negated with `no-` prefix (`--color` or `--no-color`)
+
+### Accessing Parsed Options
+
+```php
+// Check if option exists
+if ($options->has('verbose')) {
+    // ...
+}
+
+// Fetch option value (returns Either<Error, Input>)
+$options->fetch('file')->fold(
+    fn($error) => printLn("File not specified"),
+    fn($input) => printLn("File: " . $input->value)
+);
+
+// Get with default
+$file = $options->fetch('file')->getOrElse('default.txt');
+
+// Access positional arguments
+$files = $options->args; // Array of non-option arguments
+```
+
+### Built-in Options
+
+IOApp automatically provides and handles:
+- `-h, --help`: Display usage information and exit
+- `-v, --version`: Display application version and exit
+
+These flags are automatically handled by `parse()`, which will display the appropriate information and exit the process. Your `run()` method only receives control if the user provides valid arguments without help/version flags:
+
+```php
+use const Phunkie\Effect\IOApp\ExitSuccess;
+
+public function run(?array $args = []): IO
+{
+    return $this->parse($args)
+        ->flatMap(fn($options) => $this->runApp($options));
+}
+
+private function runApp($options): IO
+{
+    // Your application logic here - only called with valid options
+    return new IO(function() use ($options) {
+        $verbose = $options->has('verbose');
+        // ... your code
+        return ExitSuccess;
+    });
+}
+```
+
+The `parse()` method handles all error cases internally:
+- Invalid arguments → shows usage and exits with code 1
+- `--help` or `-h` → shows usage and exits with code 1  
+- `--version` or `-v` → shows version and exits with code 0
+- Valid arguments → returns `IO<ParsedOptions>` for your application to process
+
 ## Running with IO Console
 
-Phunkie Effects provides a console application to run your IO apps. After installing the Phunkie console, you can run your application using:
+Phunkie Effects provides a console application to run your IO apps in multiple ways:
+
+### Running IOApp Classes
+
+You can run an IOApp by passing a file that defines the class:
 
 ```bash
-$ bin/phunkie MyApp
+$ bin/phunkie MyApp.php
 Hello, Effects!
+```
+
+Simply define your IOApp class in the file - no need to explicitly return an instance:
+
+```php
+<?php
+// MyApp.php
+require 'vendor/autoload.php';
+
+use Phunkie\Effect\IO\IOApp;
+use Phunkie\Effect\IO\IO;
+use function Phunkie\Effect\Functions\console\printLn;
+
+class MyApp extends IOApp
+{
+    public function run(?array $args = []): IO
+    {
+        return printLn("Hello, Effects!")
+            ->map(fn() => 0);
+    }
+}
 ```
 
 The console will:
@@ -102,122 +267,227 @@ The console will:
 
 ## Exit Codes and Error Handling
 
-IOApp provides a way to handle errors and return appropriate exit codes:
+### Exit Codes
+
+IOApp provides standard exit code constants for common scenarios:
+
+```php
+use const Phunkie\Effect\IOApp\ExitSuccess;     // 0
+use const Phunkie\Effect\IOApp\ExitFailure;     // 1
+use const Phunkie\Effect\IOApp\ExitMisuse;      // 2
+use const Phunkie\Effect\IOApp\ExitCannotExec;  // 126
+use const Phunkie\Effect\IOApp\ExitNotFound;    // 127
+use const Phunkie\Effect\IOApp\ExitInvalid;     // 128
+use const Phunkie\Effect\IOApp\ExitInterrupted; // 130
+```
+
+Your `run()` method should return an `IO<int>` where the integer is the exit code:
+
+```php
+public function run(?array $args = []): IO
+{
+    return $this->parse($args)
+        ->flatMap(fn($options) => $this->processFile($options))
+        ->map(fn() => ExitSuccess);  // Return 0 on success
+}
+```
+
+### Error Handling with handleError
+
+Use `handleError()` to catch exceptions and return appropriate exit codes:
 
 ```php
 use Phunkie\Effect\IO\IOApp;
-use function Phunkie\Effect\Functions\io\io;
-use function Phunkie\Effect\Functions\console\printError;
-use const Phunkie\Effect\IOApp\ExitSuccess;
-use const Phunkie\Effect\IOApp\ExitFailure;
+use Phunkie\Effect\IO\IO;
+use function Phunkie\Effect\Functions\console\{printLn, printError};
+use const Phunkie\Effect\IOApp\{ExitSuccess, ExitFailure};
 
-class MyApp extends IOApp
+class FileProcessor extends IOApp
 {
-    /**
-     * @return IO<int>
-     */
-    public function run(): IO
+    public function run(?array $args = []): IO
     {
-        return io(function() {
-            try {
-                // Your application logic here
-                return ExitSuccess;
-            } catch (\Exception $e) {
-                return printError($e->getMessage())
+        return $this->parse($args)
+            ->flatMap(fn($options) => $this->processFile($options))
+            ->handleError(function($error) {
+                return printError("Error: " . $error->getMessage())
                     ->map(fn() => ExitFailure);
+            });
+    }
+
+    private function processFile($options): IO
+    {
+        return new IO(function() use ($options) {
+            $file = $options->fetch('file')->get()->value;
+            
+            if (!file_exists($file)) {
+                throw new \RuntimeException("File not found: $file");
             }
+            
+            // Process file...
+            printLn("Processed: $file")->unsafeRun();
+            
+            return ExitSuccess;
         });
     }
 }
 ```
 
+### Try-Catch Within IO
+
+For more granular error handling, use try-catch inside your IO:
+
+```php
+private function processFile($options): IO
+{
+    return new IO(function() use ($options) {
+        try {
+            $file = $options->fetch('file')->get()->value;
+            
+            // Risky operation
+            $content = file_get_contents($file);
+            if ($content === false) {
+                throw new \RuntimeException("Failed to read file");
+            }
+            
+            // Process content...
+            printSuccess("File processed successfully")->unsafeRun();
+            return ExitSuccess;
+            
+        } catch (\RuntimeException $e) {
+            printError($e->getMessage())->unsafeRun();
+            return ExitFailure;
+        } catch (\Exception $e) {
+            printError("Unexpected error: " . $e->getMessage())->unsafeRun();
+            return ExitInvalid;
+        }
+    });
+}
+```
+
+### Validation Errors
+
+Argument parsing errors are handled automatically by `parse()` - it will show usage and exit with code 1. You don't need to handle these yourself.
+
 ## Best Practices
 
-1. **Keep it Pure**: The `run` method should return an IO without side effects. All side effects should be wrapped in IO.
+1. **Use the Argument DSL**: Define your CLI interface with `define()` and let IOApp handle parsing and validation.
 
-2. **Error Handling**: Use proper error handling and return meaningful exit codes.
+2. **Automatic Error Handling**: The `parse()` method automatically handles errors, help, and version flags - you just focus on your application logic.
 
-3. **Resource Management**: Use bracket or resource patterns to manage resources properly.
+3. **Keep it Pure**: The `run` method should return an IO without side effects. All side effects should be wrapped in IO.
 
 4. **Composition**: Break down your application into smaller, composable IOs.
 
-Example of a well-structured IOApp:
+Example of a well-structured IOApp with argument parsing:
 
 ```php
 use Phunkie\Effect\IO\IOApp;
-use function Phunkie\Effect\Functions\io\io;
-use function Phunkie\Effect\Functions\console\printLn;
-use function Phunkie\Effect\Functions\console\printError;
-use function Phunkie\Effect\Functions\console\printSuccess;
-use const Phunkie\Effect\IOApp\ExitSuccess;
-use const Phunkie\Effect\IOApp\ExitFailure;
+use Phunkie\Effect\IO\IO;
+use Phunkie\Validation\Validation;
+use function Phunkie\Effect\Functions\ioapp\arguments;
+use function Phunkie\Effect\Functions\ioapp\option;
+use function Phunkie\Effect\Functions\console\{printLn, printError, printSuccess};
+use const Phunkie\Effect\Functions\ioapp\{Required, Optional, NoInput};
 
-class MyApp extends IOApp
+class DatabaseApp extends IOApp
 {
-    /**
-     * @return IO<int>
-     */
-    public function run(): IO
+    public function __construct()
     {
-        return io(function() {
-            try {
-                $config = $this->loadConfig();
-                $db = $this->connectToDatabase($config);
-                
-                return $this->runApplication($db)
-                    ->flatMap(function($result) use ($db) {
-                        return printSuccess("Operation completed")
-                            ->map(function() use ($db) {
-                                $this->cleanup($db);
-                                return ExitSuccess;
-                            });
-                    })
-                    ->handleError(function($error) {
-                        return printError($error->getMessage())
-                            ->map(fn() => ExitFailure);
-                    })
-                    ->unsafeRun();
-            } catch (\Exception $e) {
-                return printError("Fatal error: " . $e->getMessage())
-                    ->map(fn() => ExitFailure);
-            }
-        });
+        parent::__construct("1.0.0");
     }
 
-    private function loadConfig(): IO
+    protected function define(): Validation
     {
-        return io(function() {
-            // Load configuration
-            return ['host' => 'localhost', 'port' => 5432];
+        return arguments(
+            option('h', 'host', 'Database host', Optional),
+            option('p', 'port', 'Database port', Optional),
+            option('d', 'database', 'Database name', Required),
+            option('v', 'verbose', 'Verbose output', NoInput)
+            // Note: This overrides -v for verbose, but --version is still available
+        );
+    }
+
+    public function run(?array $args = []): IO
+    {
+        return $this->parse($args)->flatMap(fn($options) => $this->runApp($options));
+    }
+
+    private function runApp($options): IO
+    {
+        return $this->loadConfig($options)
+            ->flatMap(fn($config) => $this->connectToDatabase($config))
+            ->flatMap(fn($db) => $this->runQueries($db, $options))
+            ->flatMap(fn($result) => printSuccess("Operation completed"))
+            ->map(fn() => 0)
+            ->handleError(function($error) {
+                return printError("Error: " . $error->getMessage())
+                    ->map(fn() => 1);
+            });
+    }
+
+    private function loadConfig($options): IO
+    {
+        return new IO(function() use ($options) {
+            return [
+                'host' => $options->fetch('host')->getOrElse('localhost'),
+                'port' => $options->fetch('port')->getOrElse('5432'),
+                'database' => $options->fetch('database')->get()->value,
+                'verbose' => $options->has('verbose')
+            ];
         });
     }
 
     private function connectToDatabase(array $config): IO
     {
-        return io(function() use ($config) {
-            // Connect to database
+        return new IO(function() use ($config) {
+            if ($config['verbose']) {
+                printLn("Connecting to {$config['host']}:{$config['port']}")
+                    ->unsafeRun();
+            }
+            // Simulate database connection
             return new Database($config);
         });
     }
 
-    private function runApplication(Database $db): IO
+    private function runQueries(Database $db, $options): IO
     {
-        return io(function() use ($db) {
-            // Run application logic
-            return $db->query("SELECT * FROM users");
+        return new IO(function() use ($db, $options) {
+            $verbose = $options->has('verbose');
+            
+            if ($verbose) {
+                printLn("Running queries...")->unsafeRun();
+            }
+            
+            $result = $db->query("SELECT * FROM users");
+            
+            if ($verbose) {
+                printLn("Found " . count($result) . " users")->unsafeRun();
+            }
+            
+            return $result;
         });
     }
+}
 
-    private function cleanup(Database $db): void
+class Database
+{
+    public function __construct(private array $config) {}
+    
+    public function query(string $sql): array
     {
-        $db->close();
+        // Simulate query
+        return [['id' => 1, 'name' => 'John']];
     }
 }
 ```
 
-This example shows:
-- Proper error handling with console functions
-- Resource management
-- Composition of IOs
+This example demonstrates:
+- Version support via constructor
+- Comprehensive argument parsing with multiple option types
+- Automatic error/help/version handling by `parse()`
+- Simple `parse()->flatMap()` pattern for application logic
+- Composition of IOs with `flatMap`
+- Accessing parsed options with `fetch()` and `has()`
+- Verbose mode controlled by command-line flag (overrides `-v` but `--version` remains)
 - Clean separation of concerns
-- Meaningful exit codes 
+- Error handling with `handleError()` 

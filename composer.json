@@ -16,8 +16,8 @@
     "require-dev": {
         "phpunit/phpunit": "^10.5",
         "phpstan/phpstan": "^2.1",
-        "phunkie/phpstan": "^1.0",
-        "friendsofphp/php-cs-fixer": "^3.90"
+        "friendsofphp/php-cs-fixer": "^3.90",
+        "phunkie/phpstan": "^1.0"
     },
     "suggest": {
         "ext-parallel": "Required for parallel execution using threads. PHP must be compiled with ZTS support."
@@ -50,7 +50,6 @@
             "@test"
         ]
     },
-    "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
         "bin-dir": "bin"
