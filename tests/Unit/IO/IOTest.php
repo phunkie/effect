@@ -67,4 +67,70 @@ class IOTest extends TestCase
 
         $this->assertEquals('test error', $result->fold(fn ($e) => $e->getMessage())(fn ($x) => $x));
     }
+
+    #[Test]
+    public function it_can_start_computation_in_background()
+    {
+        $counter = 0;
+        $io = new IO(function () use (&$counter) {
+            $counter++;
+
+            return $counter;
+        });
+
+        // Start returns IO<AsyncHandle<A>>
+        $handleIO = $io->start();
+        $this->assertInstanceOf(IO::class, $handleIO);
+
+        // Running the IO gives us an AsyncHandle
+        $handle = $handleIO->unsafeRun();
+        $this->assertInstanceOf(\Phunkie\Effect\Concurrent\AsyncHandle::class, $handle);
+
+        // Counter hasn't incremented yet (lazy execution)
+        $this->assertEquals(0, $counter);
+
+        // Awaiting the handle executes the computation
+        $result = $handle->await();
+        $this->assertEquals(1, $result);
+        $this->assertEquals(1, $counter);
+    }
+
+    #[Test]
+    public function it_can_start_and_continue_without_blocking()
+    {
+        $log = [];
+
+        $slowIO = new IO(function () use (&$log) {
+            $log[] = 'slow-start';
+            // Simulate slow work
+            usleep(10000); // 10ms
+            $log[] = 'slow-end';
+
+            return 'slow-result';
+        });
+
+        $fastIO = new IO(function () use (&$log) {
+            $log[] = 'fast';
+
+            return 'fast-result';
+        });
+
+        // Start slow work in background
+        $program = $slowIO->start()->flatMap(function ($handle) use ($fastIO, &$log) {
+            // Do fast work while slow work runs
+            return $fastIO->map(function ($fastResult) use ($handle, &$log) {
+                // Now await slow work
+                $slowResult = $handle->await();
+
+                return [$slowResult, $fastResult];
+            });
+        });
+
+        $result = $program->unsafeRun();
+
+        $this->assertEquals(['slow-result', 'fast-result'], $result);
+        // Note: In FiberExecutionContext, the fiber executes when await() is called
+        // So the actual order is: fast, slow-start, slow-end
+        $this->assertEquals(['fast', 'slow-start', 'slow-end'], $log);
+    }
 }
