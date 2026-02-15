@@ -16,6 +16,8 @@ use Phunkie\Cats\Functor;
 use Phunkie\Cats\Monad;
 use Phunkie\Effect\Cats\Parallel;
 use Phunkie\Effect\Concurrent\AsyncHandle;
+use Phunkie\Effect\Concurrent\ExecutionContext;
+use Phunkie\Effect\Concurrent\FiberExecutionContext;
 use Phunkie\Effect\Ops\IO\ApplicativeOps;
 use Phunkie\Effect\Ops\IO\FunctorOps;
 use Phunkie\Effect\Ops\IO\MonadOps;
@@ -130,6 +132,32 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
             /** @return Validation<\Throwable, A> */
             fn () => Attempt($run)
         );
+    }
+
+    /**
+     * Starts this IO in the background and returns a handle to await its result.
+     *
+     * This forks the computation into a background fiber (or specified execution context),
+     * allowing the main program to continue without blocking. The returned AsyncHandle
+     * can be awaited later to retrieve the result.
+     *
+     * Example:
+     * ```php
+     * $handle = sendEmail($user)->start()->unsafeRun();
+     * // ... do other work ...
+     * $result = $handle->await();  // Wait for email to finish
+     * ```
+     *
+     * @param ExecutionContext|null $context The execution context (defaults to FiberExecutionContext)
+     * @return IO<AsyncHandle<A>> IO that produces a handle to the forked computation
+     * @phpstan-ignore-next-line generics.variance (AsyncHandle is invariant by design)
+     */
+    public function start(?ExecutionContext $context = null): IO
+    {
+        $run = $this->unsafeRun;
+        $context = $context ?? new FiberExecutionContext();
+
+        return new IO(fn () => $context->executeAsync($run));
     }
 
     /**

@@ -49,32 +49,48 @@ $chained = $effect->flatMap(function($content) {
 });
 ```
 
-### IOApp
+### Async Execution with start()
 
-`IOApp` provides a way to run your IO programs. It's the entry point for your effectful applications.
+The `start()` method allows you to fork computations into background fibers, enabling fire-and-forget patterns:
 
 ```php
-use Phunkie\Effect\Functions\io\io;
-use Phunkie\Effect\IO\IO;
-use Phunkie\Effect\IO\IOApp;
+use function Phunkie\Effect\Functions\io\io;
 
-class MyApp extends IOApp
-{
-    public function run(): IO
-    {
-        return io(function() {
-            echo "Hello, Effects!";
-            return 0;
+// Define an async operation
+$sendEmail = io(function() use ($user) {
+    mail($user->email, 'Welcome!', '...');
+    return 'sent';
+});
+
+// Fork to background and continue immediately
+$program = $sendEmail
+    ->start()  // Returns IO<AsyncHandle<string>>
+    ->map(function($handle) {
+        // Continue with other work...
+        return 'Email queued';
+    });
+
+// Or await the result later
+$program = $sendEmail
+    ->start()
+    ->flatMap(function($handle) {
+        // Do other work here...
+        $otherWork = io(fn() => 'other work done');
+        
+        return $otherWork->map(function($result) use ($handle) {
+            // Now wait for email to finish
+            $emailResult = $handle->await();
+            return [$result, $emailResult];
         });
-    }
-}
-```
+    });
 
-To run your application, use the Phunkie console:
+// Custom execution context
+use Phunkie\Effect\Concurrent\ParallelExecutionContext;
 
-```bash
-$ bin/phunkie MyApp
-Hello, Effects!
+$heavyComputation = io(fn() => processLargeDataset());
+$handle = $heavyComputation
+    ->start(new ParallelExecutionContext())  // Use parallel threads
+    ->unsafeRun();
 ```
 
 ## Features
@@ -84,7 +100,8 @@ Hello, Effects!
 - Composable effect chains
 - Error handling through Either
 - Resource management
-- Concurrency support (coming soon)
+- **Async execution with `start()`** - Fork computations to background fibers
+- **Custom execution contexts** - Control how effects are executed
 
 ## Why Phunkie Effects?
 
