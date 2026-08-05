@@ -56,8 +56,12 @@ class OptionDefinition
             }
         }
 
-        if ($short === null && $long === null) {
-            throw new \InvalidArgumentException("At least one of short or long name must be provided");
+        // Emptiness rather than absence: the name is a required string and every
+        // branch above assigns it to one of the two, so neither can be null and
+        // a test for that never fired. What it meant to catch is an option no
+        // one could ever pass.
+        if (($short ?? '') === '' && ($long ?? '') === '') {
+            throw new \InvalidArgumentException('At least one of short or long name must be provided.');
         }
 
         $this->short = $short;

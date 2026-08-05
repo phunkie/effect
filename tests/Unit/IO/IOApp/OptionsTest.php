@@ -30,6 +30,19 @@ class OptionsTest extends TestCase
         $this->assertInstanceOf(Options::class, $validation->toOption()->get());
     }
 
+    // An option has to be callable by something. The guard for that could never
+    // fire, because the name is a required string and every branch assigns it,
+    // so an option with no usable name was handed back as if it were fine.
+    public function test_it_refuses_an_option_with_no_name()
+    {
+        $this->assertTrue(option('')->isLeft());
+    }
+
+    public function test_it_accepts_an_option_named_only_by_its_long_form()
+    {
+        $this->assertTrue(option('', 'verbose', 'Verbose', NoInput)->isRight());
+    }
+
     public function test_it_parses_short_flags()
     {
         $options = arguments(
