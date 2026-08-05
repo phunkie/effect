@@ -79,7 +79,9 @@ const printError = '\Phunkie\Effect\Functions\console\printError';
  */
 function printError(string $message): IO
 {
-    return new IO(fn () => print("\033[31mError: {$message}\033[0m" . PHP_EOL));
+    return new IO(function () use ($message): void {
+        print("\033[31mError: {$message}\033[0m" . PHP_EOL);
+    });
 }
 
 const printWarning = '\Phunkie\Effect\Functions\console\printWarning';
@@ -92,7 +94,9 @@ const printWarning = '\Phunkie\Effect\Functions\console\printWarning';
  */
 function printWarning(string $message): IO
 {
-    return new IO(fn () => print("\033[33mWarning: {$message}\033[0m" . PHP_EOL));
+    return new IO(function () use ($message): void {
+        print("\033[33mWarning: {$message}\033[0m" . PHP_EOL);
+    });
 }
 
 const printSuccess = '\Phunkie\Effect\Functions\console\printSuccess';
@@ -105,7 +109,9 @@ const printSuccess = '\Phunkie\Effect\Functions\console\printSuccess';
  */
 function printSuccess(string $message): IO
 {
-    return new IO(fn () => print("\033[32mSuccess: {$message}\033[0m" . PHP_EOL));
+    return new IO(function () use ($message): void {
+        print("\033[32mSuccess: {$message}\033[0m" . PHP_EOL);
+    });
 }
 
 const printInfo = '\Phunkie\Effect\Functions\console\printInfo';
@@ -118,7 +124,9 @@ const printInfo = '\Phunkie\Effect\Functions\console\printInfo';
  */
 function printInfo(string $message): IO
 {
-    return new IO(fn () => print("\033[36mInfo: {$message}\033[0m" . PHP_EOL));
+    return new IO(function () use ($message): void {
+        print("\033[36mInfo: {$message}\033[0m" . PHP_EOL);
+    });
 }
 
 const printDebug = '\Phunkie\Effect\Functions\console\printDebug';
@@ -131,7 +139,9 @@ const printDebug = '\Phunkie\Effect\Functions\console\printDebug';
  */
 function printDebug(string $message): IO
 {
-    return new IO(fn () => print("\033[35mDebug: {$message}\033[0m" . PHP_EOL));
+    return new IO(function () use ($message): void {
+        print("\033[35mDebug: {$message}\033[0m" . PHP_EOL);
+    });
 }
 
 const printTable = '\Phunkie\Effect\Functions\console\printTable';
