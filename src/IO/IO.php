@@ -20,6 +20,7 @@ use Phunkie\Effect\Concurrent\ExecutionContext;
 use Phunkie\Effect\Concurrent\FiberExecutionContext;
 use Phunkie\Effect\Ops\IO\ApplicativeOps;
 use Phunkie\Effect\Ops\IO\FunctorOps;
+use Phunkie\Effect\Ops\IO\MonadErrorOps;
 use Phunkie\Effect\Ops\IO\MonadOps;
 use Phunkie\Effect\Ops\IO\ParallelOps;
 use Phunkie\Types\Kind;
@@ -45,6 +46,7 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
     use FunctorOps;
     use ApplicativeOps;
     use MonadOps;
+    use MonadErrorOps;
     use ParallelOps;
 
     private $unsafeRun;

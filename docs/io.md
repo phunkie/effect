@@ -258,6 +258,29 @@ $getUser = io(fn() => $db->findUser($id))
     ->handleError(fn($e) => null);  // Return null if not found
 ```
 
+### ensure() - Fail When a Value Is Not Acceptable
+
+`ensure` raises an error when the produced value does not satisfy a predicate. It
+stays lazy — the check runs when the IO is run — and the raised error is
+recoverable through `attempt()` / `handleError()`.
+
+```php
+$positive = io(fn() => readNumber())
+    ->ensure(fn($n) => $n > 0, new \RuntimeException('must be positive'));
+
+// ensureOr builds the error from the offending value
+$positive = io(fn() => readNumber())
+    ->ensureOr(fn($n) => $n > 0, fn($n) => new \RuntimeException("not positive: $n"));
+```
+
+`ensure` is how you express a conditional failure over an IO. A for-comprehension
+**guard** — `for { $x <- io if $x > 0 } yield $x` — is deliberately not supported
+for IO: a lazy `IO<A>` has no empty value to fall through to, so there is nothing
+for a failed guard to become. This mirrors cats-effect, where filtering an IO is
+done with `ensure`/`ensureOr` rather than with for-comprehension guard syntax. A
+plain `for { $x <- io } yield ...` (no guard) works as usual, desugaring to
+`flatMap`/`map`.
+
 ### Combining Error Handling
 
 ```php

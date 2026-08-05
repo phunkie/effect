@@ -1,0 +1,19 @@
+# Pattern matching for effect's types.
+#
+# Shipped by phunkie/effect and discovered by phunkiec through the
+# `extra.phunkiec.macros` entry in this package's composer.json. These rules are
+# loaded before phunkiec's bundled rules, so where a name collides — `IO` is both
+# phunkie's Cats\IO and effect's own IO — effect's rule wins when effect is
+# installed.
+#
+# The rules are anchored on `$on(`, which only phunkiec's `match { }` desugaring
+# ever emits, so an IO constructed anywhere else in the file is left alone. The
+# bound part is captured as `$(T_VARIABLE ...)`, so `IO(_)` (wildcard) and a
+# by-value `IO(...)` are left untouched.
+
+# effect IO — binds the wrapped thunk
+$(macro) {
+    $on( IO( $(T_VARIABLE as thunk) ) )
+} >> {
+    $on(\Phunkie\Effect\PatternMatching\Referenced\IO($(thunk)))
+}
