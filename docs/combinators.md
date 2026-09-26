@@ -144,9 +144,33 @@ $safe = $risky->handleError(function($error) {
 $result = $safe->unsafeRun(); // "Recovered from: Something went wrong"
 ```
 
+### HandleErrorWith
+
+`handleErrorWith` recovers with another effect, which runs in place of the failed one:
+
+```php
+use function Phunkie\Effect\Functions\io\io;
+
+$content = io(fn() => readCache($key))
+    ->handleErrorWith(fn($error) => io(fn() => readOrigin($key)));
+```
+
+### Recover
+
+`recover` handles one exception class and lets every other error propagate:
+
+```php
+use function Phunkie\Effect\Functions\io\io;
+
+$user = io(fn() => $users->get($id))
+    ->recover(UserNotFound::class, fn(UserNotFound $e) => io(fn() => null));
+
+$user->unsafeRun();   // null when the user is missing, still throws on anything else
+```
+
 ### Attempt
 
-`attempt` wraps the result in an `Either` type to handle success and failure:
+`attempt` wraps the outcome in a `Validation`, `Success` or `Failure`, instead of throwing:
 
 ```php
 use function Phunkie\Effect\Functions\io\io;
@@ -155,8 +179,8 @@ $risky = io(function() {
     throw new \Exception("Something went wrong");
 });
 
-$result = $risky->attempt()->unsafeRun();
-// Returns Left(Exception) instead of throwing
+$result = $risky->attempt()->unsafeRun();   // Failure(Exception)
+$message = $result->fold(fn($error) => $error->getMessage())(fn($value) => "ok: $value");
 ```
 
 ## Best Practices
