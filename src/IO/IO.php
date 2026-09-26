@@ -119,6 +119,57 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
     }
 
     /**
+     * Recovers from an error with another effect, which then runs in place of this one.
+     *
+     * @template B
+     * @param callable(Throwable): IO<B> $handler
+     * @return IO<A|B>
+     */
+    public function handleErrorWith(callable $handler): IO
+    {
+        return new IO(function () use ($handler) {
+            try {
+                return ($this->unsafeRun)();
+            } catch (Throwable $e) {
+                return $handler($e)->unsafeRun();
+            }
+        });
+    }
+
+    /**
+     * Recovers from errors of one class with another effect; every other error keeps propagating.
+     *
+     * @template B
+     * @param class-string<Throwable> $exceptionClass
+     * @param callable(Throwable): IO<B> $handler
+     * @return IO<A|B>
+     */
+    public function recover(string $exceptionClass, callable $handler): IO
+    {
+        return $this->handleErrorWith(fn (Throwable $e) => $e instanceof $exceptionClass ? $handler($e) : new IO(fn () => throw $e));
+    }
+
+    /**
+     * Runs this effect and then the given ones in order, combining every result with $f.
+     *
+     * @template B
+     * @param list<IO<mixed>> $fbs
+     * @param callable(mixed ...$results): B $f
+     * @return IO<B>
+     */
+    public function mapN(array $fbs, callable $f): IO
+    {
+        return new IO(function () use ($fbs, $f) {
+            $results = [($this->unsafeRun)()];
+            foreach ($fbs as $fb) {
+                $results[] = $fb->unsafeRun();
+            }
+
+            return $f(...$results);
+        });
+    }
+
+    /**
      * Attempts to execute the effect, capturing any error in a Validation.
      *
      * This mirrors the `attempt` behavior in Scala/Cats, where the result
