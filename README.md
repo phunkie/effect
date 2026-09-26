@@ -49,6 +49,24 @@ $chained = $effect->flatMap(function($content) {
 });
 ```
 
+### Combining and Recovering
+
+```php
+use function Phunkie\Effect\Functions\io\io;
+
+// Independent effects, run in order, combined by one function
+$page = io(fn() => loadUser($id))
+    ->mapN([io(fn() => loadOrders($id)), io(fn() => loadAddress($id))], fn($user, $orders, $address) => compact('user', 'orders', 'address'));
+
+// Recover with a value, with another effect, or only from one exception class
+$safe = $risky->handleError(fn($e) => 'default');
+$fresh = io(fn() => readCache($key))->handleErrorWith(fn($e) => io(fn() => readOrigin($key)));
+$found = io(fn() => $users->get($id))->recover(UserNotFound::class, fn($e) => io(fn() => null));
+
+// Or keep the error as a value
+$outcome = $risky->attempt();   // IO<Validation<Throwable, A>>
+```
+
 ### Async Execution with start()
 
 The `start()` method allows you to fork computations into background fibers, enabling fire-and-forget patterns:
@@ -97,8 +115,8 @@ $handle = $heavyComputation
 
 - Pure functional effect handling
 - Type-safe IO operations
-- Composable effect chains
-- Error handling through Either
+- Composable effect chains, sequential with `flatMap` and `mapN`, parallel with `parMapN`
+- Error handling as values with `attempt()`, or recovery with `handleError()`, `handleErrorWith()` and `recover()`
 - Resource management
 - **Async execution with `start()`** - Fork computations to background fibers
 - **Custom execution contexts** - Control how effects are executed

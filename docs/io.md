@@ -156,6 +156,21 @@ $sequential = io(fn() => step1())
     ->flatMap(fn($b) => io(fn() => step3($b)));
 ```
 
+### mapN - Combine Independent Effects
+
+When the effects do not depend on each other, `mapN` runs them in order and hands every result to one function, which keeps a value built from several sources flat instead of nesting `flatMap`s:
+
+```php
+$view = io(fn() => fetchUser($id))
+    ->mapN([io(fn() => fetchOrders($id)), io(fn() => fetchAddress($id))], fn($user, $orders, $address) => [
+        'user' => $user,
+        'orders' => $orders,
+        'address' => $address,
+    ]);
+```
+
+`map2` does the same for exactly two effects; `parMapN` below runs them in parallel instead.
+
 ### Parallel Execution
 
 ```php
@@ -240,13 +255,10 @@ $risky = io(fn() => throw new \RuntimeException('Oops'));
 $safe = $risky->attempt();  // IO<Validation<Throwable, A>>
 
 $result = $safe->unsafeRun();
-$result->match(
-    Success: fn($value) => "Got: $value",
-    Failure: fn($error) => "Error: {$error->getMessage()}"
-);
+$result->fold(fn($error) => "Error: {$error->getMessage()}")(fn($value) => "Got: $value");
 ```
 
-### handleError() - Recover from Errors
+### handleError() - Recover with a Value
 
 ```php
 $risky = io(fn() => riskyOperation());
@@ -256,6 +268,25 @@ $recovered = $risky->handleError(fn($e) => 'default-value');
 // Real-world example
 $getUser = io(fn() => $db->findUser($id))
     ->handleError(fn($e) => null);  // Return null if not found
+```
+
+### handleErrorWith() - Recover with Another Effect
+
+When the recovery is itself an effect, `handleErrorWith` runs it in place of the failed one:
+
+```php
+$content = io(fn() => readCache($key))
+    ->handleErrorWith(fn($e) => io(fn() => readOrigin($key)));
+```
+
+### recover() - Recover from One Exception Class
+
+`recover` handles only the named class and lets every other error keep propagating, so a handler can answer the failures it understands without swallowing the rest:
+
+```php
+$response = io(fn() => $users->get($id))
+    ->flatMap(fn($user) => Ok($user))
+    ->recover(UserNotFound::class, fn(UserNotFound $e) => NotFound(['error' => $e->getMessage()]));
 ```
 
 ### ensure() - Fail When a Value Is Not Acceptable
@@ -285,12 +316,9 @@ plain `for { $x <- io } yield ...` (no guard) works as usual, desugaring to
 
 ```php
 $program = fetchFromApi()
-    ->attempt()
-    ->flatMap(fn($result) => $result->match(
-        Success: fn($data) => io(fn() => processData($data)),
-        Failure: fn($error) => io(fn() => logError($error))
-            ->productR(io(fn() => getDefaultData()))
-    ));
+    ->flatMap(fn($data) => io(fn() => processData($data)))
+    ->handleErrorWith(fn($error) => io(fn() => logError($error))
+        ->productR(io(fn() => getDefaultData())));
 ```
 
 ## Running IO
