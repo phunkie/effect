@@ -35,6 +35,78 @@ $empty = $io->filter(fn($x) => $x < 40);
 $result = $empty->unsafeRun(); // throws NoSuchElementException
 ```
 
+## Sequence and Traverse
+
+Both live in `Phunkie\Effect\Functions\io`, next to `io` and `bracket`.
+
+### Sequence
+
+`sequence` turns a list of effects into one effect of their results, run in order when the effect runs, keys kept:
+
+```php
+use function Phunkie\Effect\Functions\io\{io, sequence};
+
+$ios = [io(fn() => 1), io(fn() => 2), io(fn() => 3)];
+
+$result = sequence($ios)->unsafeRun(); // [1, 2, 3]
+```
+
+A blocking effect in the list is awaited, so `sequence` yields values, never handles.
+
+### Traverse
+
+`traverse` maps each value to an effect and sequences the results:
+
+```php
+use function Phunkie\Effect\Functions\io\traverse;
+
+$result = traverse([1, 2, 3], fn($n) => io(fn() => $n * 2))->unsafeRun(); // [2, 4, 6]
+```
+
+## Race and Timeout
+
+`race`, `either` and `timeout` run an effect where it can be polled and cancelled. A blocking effect runs in the context it was given; any other effect runs in the context passed as the last argument, `ParallelExecutionContext` by default, which needs `ext-parallel`. A context whose handles cannot be polled, such as the fiber context, is refused with a `RuntimeException` that says so.
+
+### Race
+
+`race` returns the result of whichever effect finishes first and cancels the other:
+
+```php
+use Phunkie\Effect\Concurrent\ParallelExecutionContext;
+
+use function Phunkie\Effect\Functions\blocking\blocking;
+
+$fast = blocking(function() {
+    usleep(100000);
+
+    return "fast";
+}, new ParallelExecutionContext());
+
+$slow = blocking(function() {
+    usleep(200000);
+
+    return "slow";
+}, new ParallelExecutionContext());
+
+$result = $fast->race($slow)->unsafeRun(); // "fast"
+```
+
+`either` is the same race that says who won: `Left` for the effect it was called on, `Right` for the other.
+
+### Timeout
+
+`timeout` gives an effect a number of milliseconds; when they run out the effect is cancelled and a `Phunkie\Effect\Concurrent\TimeoutException` is raised:
+
+```php
+use Phunkie\Effect\Concurrent\TimeoutException;
+
+try {
+    $result = $slow->timeout(1000)->unsafeRun();
+} catch (TimeoutException $e) {
+    // Timed out after 1000 ms.
+}
+```
+
 ## Error Handling
 
 Combinators also provide ways to handle errors in effects.

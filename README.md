@@ -117,7 +117,9 @@ $handle = $heavyComputation
 - Type-safe IO operations
 - Composable effect chains, sequential with `flatMap` and `mapN`, parallel with `parMapN`
 - Error handling as values with `attempt()`, or recovery with `handleError()`, `handleErrorWith()` and `recover()`
-- Resource management
+- Resource management with `bracket`, `bracketCase`, `bracketE`, and `Resource` as a composable value
+- `sequence` and `traverse` over lists of effects, `productR`, `delay`, `both`
+- `race`, `either` and `timeout` on effects that run where they can be cancelled
 - **Async execution with `start()`** - Fork computations to background fibers
 - **Custom execution contexts** - Control how effects are executed
 

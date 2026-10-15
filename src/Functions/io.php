@@ -11,7 +11,9 @@
 
 namespace Phunkie\Effect\Functions\io;
 
+use Phunkie\Effect\IO\ExitCase;
 use Phunkie\Effect\IO\IO;
+use Throwable;
 
 /**
  * Creates an IO effect from a value or a callable.
@@ -35,30 +37,86 @@ function io($value): IO
 }
 
 /**
- * Creates an IO that will acquire a resource, use it, and then release it.
- * Ensures the release is always called, even if it fails.
+ * Acquire a resource, use it, release it, whatever way the use step ends.
  *
- * @template T
- * @template R
- * @param IO<T> $acquire The IO that acquires the resource
- * @param callable(T): IO<R> $use The function that uses the resource
- * @param callable(T): IO<void> $release The function that releases the resource
- * @return IO<R>
+ * @template A
+ * @template B
+ * @param IO<A> $acquire
+ * @param callable(A): IO<B> $use
+ * @param callable(A): IO<mixed> $release
+ * @return IO<B>
  */
 function bracket(IO $acquire, callable $use, callable $release): IO
+{
+    return bracketE($acquire, $use, fn ($resource, ?Throwable $error) => $release($resource));
+}
+
+/**
+ * bracket whose release step is told how the use step ended: ExitCase::Completed, or ExitCase::Error.
+ *
+ * @template A
+ * @template B
+ * @param IO<A> $acquire
+ * @param callable(A): IO<B> $use
+ * @param callable(A, ExitCase): IO<mixed> $release
+ * @return IO<B>
+ */
+function bracketCase(IO $acquire, callable $use, callable $release): IO
+{
+    return bracketE($acquire, $use, fn ($resource, ?Throwable $error) => $release($resource, null === $error ? ExitCase::Completed : ExitCase::Error));
+}
+
+/**
+ * bracket whose release step is handed the error the use step raised, or null when it completed.
+ * The error is rethrown once the release step has run.
+ *
+ * @template A
+ * @template B
+ * @param IO<A> $acquire
+ * @param callable(A): IO<B> $use
+ * @param callable(A, Throwable|null): IO<mixed> $release
+ * @return IO<B>
+ */
+function bracketE(IO $acquire, callable $use, callable $release): IO
 {
     return new IO(function () use ($acquire, $use, $release) {
         $resource = $acquire->unsafeRun();
 
         try {
             $result = $use($resource)->unsafeRun();
-            $release($resource)->unsafeRun();
-
-            return $result;
-        } catch (\Throwable $e) {
-            $release($resource)->unsafeRun();
+        } catch (Throwable $e) {
+            $release($resource, $e)->unsafeRun();
 
             throw $e;
         }
+        $release($resource, null)->unsafeRun();
+
+        return $result;
     });
+}
+
+/**
+ * A list of effects as one effect of their results, run in order, keys kept.
+ *
+ * @template A
+ * @param array<IO<A>> $ios
+ * @return IO<array<A>>
+ */
+function sequence(array $ios): IO
+{
+    return new IO(fn () => array_map(fn (IO $io) => $io->unsafeRunSync(), $ios));
+}
+
+/**
+ * Each value through $f, the resulting effects sequenced.
+ *
+ * @template A
+ * @template B
+ * @param array<A> $values
+ * @param callable(A): IO<B> $f
+ * @return IO<array<B>>
+ */
+function traverse(array $values, callable $f): IO
+{
+    return sequence(array_map($f, $values));
 }

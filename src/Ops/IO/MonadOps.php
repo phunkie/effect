@@ -35,6 +35,18 @@ trait MonadOps
     }
 
     /**
+     * Runs this effect, then $next, keeping only the result of $next.
+     *
+     * @template B
+     * @param IO<B> $next
+     * @return IO<B>
+     */
+    public function productR(IO $next): IO
+    {
+        return $this->flatMap(fn () => $next);
+    }
+
+    /**
      * Flattens a nested IO structure (IO<IO<A>> -> IO<A>).
      *
      * @return IO<A> where A is the type parameter of the inner IO

@@ -42,6 +42,8 @@ Master the fundamental building blocks:
 
 ### 4. [Combinators](combinators.md)
    - Core IO Operations
+   - Sequence and Traverse
+   - Race and Timeout
    - Error Handling
    - Composition Patterns
 
@@ -49,9 +51,13 @@ Master the fundamental building blocks:
    - Blockers
    - Execution Context
    - Parallel Execution
+   - Race, Either and Timeout
+   - Both and Delay
+   - Cancellation
 
 ### 6. [Resources](resources.md)
-   - Brackets
+   - Brackets, bracketCase and bracketE
+   - Resource
    - Files, database and network connections
 
 ## Contributing
