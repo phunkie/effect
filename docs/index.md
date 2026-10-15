@@ -49,18 +49,10 @@ Master the fundamental building blocks:
    - Blockers
    - Execution Context
    - Parallel Execution
-   - Sequence and Traverse
-   - Race, Both, Either
-   - Cancellation
-   - Delay
-   - Channels
 
 ### 6. [Resources](resources.md)
    - Brackets
-   - Resource Combinators
-   - Files
-   - URL
-   - Database
+   - Files, database and network connections
 
 ## Contributing
 
