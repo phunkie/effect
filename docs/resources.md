@@ -48,41 +48,6 @@ $result = bracket(
 )->unsafeRun();
 ```
 
-### BracketCase
-
-`bracketCase` allows different cleanup strategies based on how the resource was used:
-
-```php
-$result = bracketCase(
-    blocking(function() { return openFile(); }),
-    function($file) { return readFile($file); },
-    function($file, $exitCase) {
-        return match($exitCase) {
-            ExitCase::Completed => closeFile($file),
-            ExitCase::Error => closeAndLogError($file),
-            ExitCase::Cancelled => closeAndNotify($file)
-        };
-    }
-)->unsafeRun();
-```
-
-### BracketE
-
-`bracketE` combines error handling with resource management:
-
-```php
-$result = bracketE(
-    blocking(function() { return openConnection(); }),
-    function($conn) { return useConnection($conn); },
-    function($conn, $error) {
-        return match($error) {
-            null => closeConnection($conn),
-            default => closeAndLogError($conn, $error)
-        };
-    }
-)->unsafeRun();
-```
-
 ## Common Resource Patterns
 
 ### File Operations
@@ -159,36 +124,7 @@ $result = bracket(
    }
    ```
 
-2. **Handle Errors in Release**
-   ```php
-   $result = bracketE(
-       blocking(function() { return openResource(); }),
-       function($r) { return useResource($r); },
-       function($r, $error) {
-           return match($error) {
-               null => closeResource($r),
-               default => closeAndLogError($r, $error)
-           };
-       }
-   );
-   ```
-
-3. **Use Appropriate Cleanup Strategies**
-   ```php
-   $result = bracketCase(
-       blocking(function() { return openResource(); }),
-       function($r) { return useResource($r); },
-       function($r, $exitCase) {
-           return match($exitCase) {
-               ExitCase::Completed => closeResource($r),
-               ExitCase::Error => closeAndLogError($r),
-               ExitCase::Cancelled => closeAndNotify($r)
-           };
-       }
-   );
-   ```
-
-4. **Compose Resource Operations**
+2. **Compose Resource Operations**
    ```php
    $result = bracket(
        blocking(function() { return openResource(); }),
@@ -203,13 +139,12 @@ $result = bracket(
    );
    ```
 
-5. **Handle Resource Limits**
+3. **Handle Resource Limits**
    ```php
    $result = bracket(
        blocking(function() { return openResource(); }),
        function($r) {
            return $operation
-               ->timeout(1000)
                ->handleError(fn($e) => "fallback");
        },
        function($r) { return closeResource($r); }

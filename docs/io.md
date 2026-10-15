@@ -131,20 +131,6 @@ $workflow = readConfig('config.json')
     ->flatMap(fn($users) => sendEmails($users));
 ```
 
-### productR (*>) - Sequence and Discard First
-
-```php
-// Run both effects, keep only the second result
-$program = writeLog('Starting...')
-    ->productR(performOperation())
-    ->productR(writeLog('Done'));
-
-// Equivalent to:
-$program = writeLog('Starting...')
-    ->flatMap(fn($_) => performOperation())
-    ->flatMap(fn($result) => writeLog('Done')->map(fn($_) => $result));
-```
-
 ## Combining IO
 
 ### Sequential Composition
@@ -318,7 +304,7 @@ plain `for { $x <- io } yield ...` (no guard) works as usual, desugaring to
 $program = fetchFromApi()
     ->flatMap(fn($data) => io(fn() => processData($data)))
     ->handleErrorWith(fn($error) => io(fn() => logError($error))
-        ->productR(io(fn() => getDefaultData())));
+        ->flatMap(fn() => io(fn() => getDefaultData())));
 ```
 
 ## Running IO
