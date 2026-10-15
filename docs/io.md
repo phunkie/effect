@@ -131,6 +131,18 @@ $workflow = readConfig('config.json')
     ->flatMap(fn($users) => sendEmails($users));
 ```
 
+### productR - Sequence and Discard First
+
+```php
+// Run both effects, keep only the second result
+$program = writeLog('Starting...')
+    ->productR(performOperation());
+
+// Equivalent to:
+$program = writeLog('Starting...')
+    ->flatMap(fn($_) => performOperation());
+```
+
 ## Combining IO
 
 ### Sequential Composition

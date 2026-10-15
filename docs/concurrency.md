@@ -207,6 +207,58 @@ Remember that parallel execution is not a silver bullet. Consider:
 
 When in doubt, prefer simpler concurrency models like fibers for I/O operations and only use parallel execution for CPU-intensive tasks that benefit from true parallelism.
 
+## Race, Either and Timeout
+
+These run an effect where it can be polled and cancelled: a blocking effect in the context it was given, any other effect in the context passed as the last argument, `ParallelExecutionContext` by default. The fiber context cannot be polled, so it is refused with a `RuntimeException`.
+
+```php
+use Phunkie\Effect\Concurrent\ParallelExecutionContext;
+use Phunkie\Effect\Concurrent\TimeoutException;
+
+$fast = blocking(fn() => fetchFromCache(), new ParallelExecutionContext());
+$slow = blocking(fn() => fetchFromOrigin(), new ParallelExecutionContext());
+
+$result = $fast->race($slow)->unsafeRun();      // whichever finished first; the other is cancelled
+$which = $fast->either($slow)->unsafeRun();     // Left(result) when $fast won, Right(result) when $slow did
+
+try {
+    $result = $slow->timeout(1000)->unsafeRun(); // the result, or TimeoutException after 1000 ms
+} catch (TimeoutException $e) {
+}
+```
+
+## Both
+
+`both` runs this effect, then the other, and pairs the results:
+
+```php
+$result = $operation1->both($operation2)->unsafeRun(); // [result1, result2]
+```
+
+It is sequential; `parMap2` is the parallel form.
+
+## Delay
+
+`delay` runs the effect once the given milliseconds have passed:
+
+```php
+$result = $operation->delay(1000)->unsafeRun(); // runs after 1 second
+```
+
+## Cancellation
+
+A handle from the parallel context is a `CancellableHandle`: it can be asked whether the computation has finished and can be cancelled. `race` and `timeout` use that to stop the effect that lost or ran out of time.
+
+```php
+$handle = $operation->start(new ParallelExecutionContext())->unsafeRun();
+// ... some time later ...
+if (! $handle->isDone()) {
+    $handle->cancel();
+}
+```
+
+A handle from the fiber context runs the computation when it is awaited and cannot be cancelled.
+
 ## Best Practices
 
 1. **Choose the Right Execution Context**

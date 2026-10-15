@@ -19,6 +19,7 @@ use Phunkie\Effect\Concurrent\AsyncHandle;
 use Phunkie\Effect\Concurrent\ExecutionContext;
 use Phunkie\Effect\Concurrent\FiberExecutionContext;
 use Phunkie\Effect\Ops\IO\ApplicativeOps;
+use Phunkie\Effect\Ops\IO\ConcurrentOps;
 use Phunkie\Effect\Ops\IO\FunctorOps;
 use Phunkie\Effect\Ops\IO\MonadErrorOps;
 use Phunkie\Effect\Ops\IO\MonadOps;
@@ -48,6 +49,7 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
     use MonadOps;
     use MonadErrorOps;
     use ParallelOps;
+    use ConcurrentOps;
 
     private $unsafeRun;
 
@@ -166,6 +168,20 @@ class IO implements Functor, Applicative, Monad, Parallel, Kind
             }
 
             return $f(...$results);
+        });
+    }
+
+    /**
+     * The same effect, run only once $millis have passed.
+     *
+     * @return IO<A>
+     */
+    public function delay(int $millis): IO
+    {
+        return new IO(function () use ($millis) {
+            usleep($millis * 1000);
+
+            return ($this->unsafeRun)();
         });
     }
 

@@ -48,6 +48,70 @@ $result = bracket(
 )->unsafeRun();
 ```
 
+### BracketCase
+
+`bracketCase` tells the release step how the use step ended, as an `ExitCase`: `Completed`, or `Error` when it threw. The error is rethrown once the release step has run.
+
+```php
+use Phunkie\Effect\IO\ExitCase;
+
+use function Phunkie\Effect\Functions\io\bracketCase;
+
+$result = bracketCase(
+    blocking(function() { return openFile(); }),
+    function($file) { return readFile($file); },
+    function($file, ExitCase $exitCase) {
+        return match($exitCase) {
+            ExitCase::Completed => closeFile($file),
+            ExitCase::Error => closeAndLogError($file),
+            ExitCase::Cancelled => closeAndNotify($file),
+        };
+    }
+)->unsafeRun();
+```
+
+`ExitCase::Cancelled` exists for the day cancellation reaches brackets; nothing produces it yet.
+
+### BracketE
+
+`bracketE` hands the release step the error the use step raised, or `null` when it completed:
+
+```php
+use function Phunkie\Effect\Functions\io\bracketE;
+
+$result = bracketE(
+    blocking(function() { return openConnection(); }),
+    function($conn) { return useConnection($conn); },
+    function($conn, ?Throwable $error) {
+        return null === $error ? closeConnection($conn) : closeAndLogError($conn, $error);
+    }
+)->unsafeRun();
+```
+
+`bracket` is `bracketE` with a release step that ignores the error.
+
+## Resource
+
+A `Resource` is a bracket as a value: something acquired for the duration of a use step and released after it, however the step ends. Resources compose before anything is acquired, and `use()` turns the whole thing back into one `IO`:
+
+```php
+use Phunkie\Effect\IO\Resource;
+
+$connection = Resource::make(
+    io(fn() => connect($dsn)),
+    fn($conn) => io(fn() => $conn->close()),
+);
+
+$statement = $connection->flatMap(fn($conn) => Resource::make(
+    io(fn() => $conn->prepare($sql)),
+    fn($stmt) => io(fn() => $stmt->closeCursor()),
+));
+
+$rows = $statement->use(fn($stmt) => io(fn() => $stmt->fetchAll()))->unsafeRun();
+```
+
+`flatMap` nests: the statement is acquired inside the connection and released before it. `map` transforms what was acquired; `Resource::pure($value)` and `Resource::eval($io)` lift a value or an effect that needs no releasing, so they compose with the ones that do.
+
 ## Common Resource Patterns
 
 ### File Operations
